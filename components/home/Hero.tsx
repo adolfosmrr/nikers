@@ -3,7 +3,6 @@
 import { useState, useEffect, useLayoutEffect, useRef, type RefObject } from "react";
 import Image from "next/image";
 import gsap from 'gsap'
-import * as THREE from "three"
 
 import { ProductCard } from "@/lib/product/types"
 
@@ -13,27 +12,73 @@ interface HeroProps {
 
 type Direction = "next" | "prev";
 
+const MATRIX_GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
 function neighbor(index: number, direction: Direction, total: number): number {
     const step = direction === "next" ? 1 : -1;
     return (index + step + total) % total;
 }
 
-function Wallpaper({ priority = false, product }: { priority?: boolean, product: ProductCard }) {
+function writeGlyphs(nodes: Array<HTMLElement | null>, value: string) {
+    for (const node of nodes) {
+        if (node) node.textContent = value
+    }
+}
+
+function playMatrix(nodes: Array<HTMLElement | null>, target: string, uppercase = true): () => void {
+    const letters = (uppercase ? target.toUpperCase() : target).split("")
+    const glyphs = uppercase ? MATRIX_GLYPHS : `${MATRIX_GLYPHS}abcdefghijklmnopqrstuvwxyz`
+    const steps = 14
+    let step = 0
+
+    const frame = () => {
+        step += 1
+        const progress = step / steps
+        const value = letters
+            .map((letter, index) => {
+                if (!/[A-Za-z0-9]/.test(letter)) return letter
+                if (progress >= (index + 1) / letters.length) return letter
+                return glyphs[Math.floor(Math.random() * glyphs.length)] ?? letter
+            })
+            .join("")
+        writeGlyphs(nodes, value)
+    }
+
+    frame()
+    const id = window.setInterval(() => {
+        frame()
+        if (step >= steps) window.clearInterval(id)
+    }, 32)
+
+    return () => window.clearInterval(id)
+}
+
+function Wallpaper({
+    frameRef,
+    priority = false,
+    product,
+}: {
+    frameRef: RefObject<HTMLDivElement | null>
+    priority?: boolean
+    product: ProductCard
+}) {
     return (
-        <div className="absolute inset-0 bg-neutral-950 z-0">
+        <div className="absolute inset-0 z-0 bg-neutral-950">
             {
                 product.wallpaper?.url ? (
-                    <Image
-                        alt={product.wallpaper?.altText || product.title}
-                        className="object-cover relative z-1"
-                        fill
-                        priority={priority}
-                        sizes="100vw"
-                        src={product.wallpaper.url}
-                    />
+                    <div ref={frameRef} className="absolute inset-0 z-1 origin-center">
+                        <Image
+                            alt={product.wallpaper.altText || product.title}
+                            className="object-cover"
+                            fill
+                            priority={priority}
+                            sizes="100vw"
+                            src={product.wallpaper.url}
+                        />
+                    </div>
                 ) : null
             }
-            {/* Overlay Background */} <div className="absolute inset-0 z-2"></div>
+            <div className="absolute inset-0 z-2 bg-black/50 backdrop-blur-xs" />
         </div>
     )
 }
@@ -41,7 +86,7 @@ function Wallpaper({ priority = false, product }: { priority?: boolean, product:
 function Title({ hidden = false, product, titleRef }: { hidden?: boolean, product: ProductCard, titleRef: RefObject<HTMLHeadingElement | null> }) {
     return (
         <h1
-            className="absolute bottom-[30%] left-1/2 transform -translate-x-1/2 font-mono text-4xl text-white data-[hidden=true]:opacity-0"
+            className="absolute bottom-[30%] left-0 w-full text-center font-mono text-4xl text-white data-[hidden=true]:opacity-0"
             ref={titleRef}
             data-hidden={hidden ? 'true' : 'false'}
         >
@@ -55,138 +100,34 @@ function Title({ hidden = false, product, titleRef }: { hidden?: boolean, produc
 function Shoe({
     frameRef,
     hidden = false,
+    priority = false,
     product,
-    smearRef,
 }: {
     frameRef: RefObject<HTMLDivElement | null>
     hidden?: boolean
+    priority?: boolean
     product: ProductCard
-    smearRef: RefObject<{ value: number }>
 }) {
-    const canvasRef = useRef<HTMLCanvasElement>(null)
     const image = product.featuredImage
     const canSize = Boolean(image && image.width > 0 && image.height > 0)
-
-    useEffect(() => {
-        const canvas = canvasRef.current
-        const frame = frameRef.current
-        if (!canvas || !frame || !image || !canSize) return
-
-        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, canvas })
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-        renderer.outputColorSpace = THREE.SRGBColorSpace
-        renderer.setClearColor(0x000000, 0)
-
-        const scene = new THREE.Scene()
-        const pad = 1.8
-        const camera = new THREE.OrthographicCamera(-0.5 * pad, 0.5 * pad, 0.5 * pad, -0.5 * pad, 0.1, 10)
-        camera.position.z = 1
-
-        const uniforms = {
-            uHover: { value: 0 },
-            uMouse: { value: new THREE.Vector2(0.5, 0.5) },
-            uSmear: { value: 0 },
-            uTexture: { value: new THREE.Texture() },
-        }
-
-        const loader = new THREE.TextureLoader()
-        loader.setCrossOrigin("anonymous")
-        loader.load(image.url, (texture) => {
-            texture.colorSpace = THREE.SRGBColorSpace
-            uniforms.uTexture.value = texture
-        })
-
-        const material = new THREE.ShaderMaterial({
-            transparent: true,
-            uniforms,
-            vertexShader: `
-                uniform float uHover;
-                uniform float uSmear;
-                uniform vec2 uMouse;
-                varying vec2 vUv;
-                void main() {
-                    vUv = uv;
-                    vec3 pos = position;
-                    pos.x += uSmear * mix(1.0, 0.15, uv.y);
-                    float dist = distance(uv, uMouse);
-                    float pull = exp(-dist * dist * 12.0) * uHover;
-                    pos.x += (uMouse.x - 0.5) * pull * 0.35;
-                    pos.y += (uMouse.y - 0.5) * pull * 0.35;
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-                }
-            `,
-            fragmentShader: `
-                uniform sampler2D uTexture;
-                varying vec2 vUv;
-                void main() {
-                    gl_FragColor = texture2D(uTexture, vUv);
-                }
-            `,
-        })
-
-        const geometry = new THREE.PlaneGeometry(1, 1, 40, 40)
-        scene.add(new THREE.Mesh(geometry, material))
-
-        const resize = () => {
-            const width = frame.clientWidth
-            const height = frame.clientHeight
-            if (width === 0 || height === 0) return
-            renderer.setSize(width, height, false)
-        }
-        resize()
-        const observer = new ResizeObserver(resize)
-        observer.observe(frame)
-
-        let hovering = false
-        const onPointerMove = (event: PointerEvent) => {
-            const bounds = frame.getBoundingClientRect()
-            const inside =
-                event.clientX >= bounds.left &&
-                event.clientX <= bounds.right &&
-                event.clientY >= bounds.top &&
-                event.clientY <= bounds.bottom
-
-            if (inside) {
-                uniforms.uMouse.value.set(
-                    (event.clientX - bounds.left) / bounds.width,
-                    1 - (event.clientY - bounds.top) / bounds.height,
-                )
-            }
-            if (inside === hovering) return
-            hovering = inside
-            gsap.to(uniforms.uHover, { duration: 0.35, ease: "power2.out", value: inside ? 1 : 0 })
-        }
-        window.addEventListener("pointermove", onPointerMove)
-
-        let raf = 0
-        const tick = () => {
-            uniforms.uSmear.value = smearRef.current?.value ?? 0
-            renderer.render(scene, camera)
-            raf = requestAnimationFrame(tick)
-        }
-        raf = requestAnimationFrame(tick)
-
-        return () => {
-            cancelAnimationFrame(raf)
-            observer.disconnect()
-            window.removeEventListener("pointermove", onPointerMove)
-            geometry.dispose()
-            material.dispose()
-            uniforms.uTexture.value.dispose()
-            renderer.dispose()
-        }
-    }, [canSize, frameRef, image, smearRef])
 
     if (!image || !canSize) return null
 
     return (
         <div
             ref={frameRef}
-            className="absolute top-1/2 left-1/2 z-10 w-3/5 -translate-x-1/2 -translate-y-1/2 data-[hidden=true]:opacity-0"
+            className="absolute top-[50%] left-1/2 z-10 w-3/5 -translate-x-1/2 -translate-y-1/2 data-[hidden=true]:opacity-0"
             data-hidden={hidden ? "true" : "false"}
-            style={{ aspectRatio: `${image.width} / ${image.height}` }}
         >
-            <canvas ref={canvasRef} className="h-full w-full" />
+            <Image
+                alt={image.altText || product.title}
+                className="h-auto w-full max-w-150 mx-auto"
+                height={image.height}
+                priority={priority}
+                sizes="100vw"
+                src={image.url}
+                width={image.width}
+            />
         </div>
     )
 }
@@ -201,6 +142,8 @@ export default function Hero({ products }: HeroProps) {
     const [word, setWord] = useState("next")
 
     const curtainRef = useRef<HTMLDivElement>(null)
+    const currentWallpaperRef = useRef<HTMLDivElement>(null)
+    const incomingWallpaperRef = useRef<HTMLDivElement>(null)
     const currentTitleRef = useRef<HTMLHeadingElement>(null)
     const incomingTitleRef = useRef<HTMLHeadingElement>(null)
     const currentShoeRef = useRef<HTMLDivElement>(null)
@@ -217,12 +160,12 @@ export default function Hero({ products }: HeroProps) {
     const labelPlacedRef = useRef(false)
     const redShiftRef = useRef<SVGFEOffsetElement>(null)
     const blueShiftRef = useRef<SVGFEOffsetElement>(null)
-    const currentBend = useRef({ value: 0})
-    const incomingBend = useRef({ value: 0})
+    const titleMatrixRef = useRef<(() => void) | null>(null)
 
     useEffect(() => {
         return () => {
             timelineRef.current?.kill();
+            titleMatrixRef.current?.()
         }
     }, [])
 
@@ -243,7 +186,7 @@ export default function Hero({ products }: HeroProps) {
         const magenta = magentaWordRef.current
         if (!main || !cyan || !magenta) return
 
-        const glitch = gsap.timeline({ default: { ease: "none" } })
+        const glitch = gsap.timeline({ defaults: { ease: "none" } })
         glitch
             .set(cyan, { opacity: 0.9, x: -5 })
             .set(magenta, { opacity: 0.9, x: 5 })
@@ -253,17 +196,27 @@ export default function Hero({ products }: HeroProps) {
             .set(cyan, { opacity: 0, x: 0 })
             .set(magenta, { opacity: 0, x: 0 })
 
+        const stopMatrix = playMatrix([main, cyan, magenta], word)
+
         return () => {
+            stopMatrix()
             glitch.kill()
             gsap.set(main, { clipPath: "inset(0% 0% 0% 0%)" })
             gsap.set([cyan, magenta], { opacity: 0, x: 0 })
+            writeGlyphs([main, cyan, magenta], word.toUpperCase())
         }
-    }, [side])
+    }, [side, word])
 
     useLayoutEffect(() => {
         if (!busyRef.current) return;
 
         gsap.set(curtainRef.current, { clipPath: "inset(0% 0% 0% 0%)" });
+        const wallpaperFrames = [currentWallpaperRef.current, incomingWallpaperRef.current].filter(
+            (frame) => frame !== null
+        )
+        if (wallpaperFrames.length) {
+            gsap.set(wallpaperFrames, { rotation: 0, scale: 1 })
+        }
         redShiftRef.current?.setAttribute("dx", "0")
         blueShiftRef.current?.setAttribute("dx", "0")
         gsap.set(
@@ -319,12 +272,19 @@ export default function Hero({ products }: HeroProps) {
         const leaveX = revealFromRight ? -travel : travel
         const enterX = -leaveX
         const smearX = revealFromRight ? 48 : -48
-        const bend = revealFromRight ? 0.28 : -0.28
+        const rotationCurrent = direction === "next" ? -20 : 20
+        const rotationIncoming = direction === "next" ? 20 : -20
 
         busyRef.current = true;
         if (currentShoeRef.current) currentShoeRef.current.style.filter = "url(#shoe-smear)"
         if (incomingShoeRef.current) incomingShoeRef.current.style.filter = "url(#shoe-smear)"
         sideRef.current = direction;
+
+        titleMatrixRef.current?.()
+        titleMatrixRef.current = playMatrix([currentTitleRef.current], incoming.title, false)
+
+        const currentWallpaper = currentWallpaperRef.current
+        const incomingWallpaper = incomingWallpaperRef.current
 
         timelineRef.current?.kill()
         timelineRef.current = gsap.timeline({
@@ -334,8 +294,28 @@ export default function Hero({ products }: HeroProps) {
             .to(curtainRef.current, {
                 clipPath: revealFromRight ? "inset(0% 100% 0% 0%)" : "inset(0% 0% 0% 100%)",
             }, 0)
-            .to(currentTitleRef.current, { opacity: 0, y: revealFromRight ? -48 : 48 }, 0)
-            .to(incomingTitleRef.current, { opacity: 0, y: revealFromRight ? -48 : 48 }, 0)
+
+        if (currentWallpaper) {
+            timelineRef.current.fromTo(currentWallpaper, {
+                rotation: 0,
+                scale: 1,
+            }, {
+                rotate: rotationCurrent,
+                scale: 1.4,
+            }, 0)
+        }
+
+        if (incomingWallpaper) {
+            timelineRef.current.fromTo(incomingWallpaper, {
+                rotate: rotationIncoming,
+                scale: 1.4,
+            }, {
+                rotation: 0,
+                scale: 1,
+            }, 0)
+        }
+
+        timelineRef.current
             .fromTo(currentShoeRef.current, {
                 opacity: 1, x: 0, xPercent: -50
             }, {
@@ -362,23 +342,11 @@ export default function Hero({ products }: HeroProps) {
             .to(blueShiftRef.current, {
                 attr: { dx: 0 }, duration: 0.45, ease: "power2.in"
             }, 0.35)
-            .fromTo(currentBend.current, { value: 0 }, {
-                value: bend, duration: 0.35, ease: "power2.out"
-            }, 0)
-            .to(currentBend.current, {
-                value: 0, duration: 0.45, ease: "power2.in"
-            }, 0.35)
-            .fromTo(incomingBend.current, { value: 0 }, {
-                value: bend, duration: 0.35, ease: "power2.out"
-            }, 0)
-            .to(incomingBend.current, {
-                value: 0, duration: 0.45, ease: "power2.in"
-            }, 0.35)
     }
 
     return (
         <section
-            className="relative h-screen min-h-200 w-full overflow-hidden bg-neutral-950"
+            className="relative h-screen min-h-200 w-full cursor-none! overflow-hidden bg-neutral-950 **:cursor-none!"
             onMouseLeave={() => setSide(null)}
             onMouseMove={onMouseMove}
         >
@@ -408,30 +376,30 @@ export default function Hero({ products }: HeroProps) {
                     <feComposite in="redGreen" in2="blueMoved" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" />
                 </filter>
             </svg>
-            <Wallpaper product={incoming} />
+            <Wallpaper frameRef={incomingWallpaperRef} product={incoming} />
             <div
                 ref={curtainRef}
                 className="absolute inset-0"
             >
-                <Wallpaper priority product={current} />
+                <Wallpaper frameRef={currentWallpaperRef} priority product={current} />
             </div>
 
-            <Shoe frameRef={incomingShoeRef} hidden product={incoming} smearRef={incomingBend} />
-            <Shoe frameRef={currentShoeRef} product={current} smearRef={currentBend} />
+            <Shoe frameRef={incomingShoeRef} hidden product={incoming} />
+            <Shoe frameRef={currentShoeRef} priority product={current} />
 
             <Title hidden product={incoming} titleRef={incomingTitleRef} />
             <Title product={current} titleRef={currentTitleRef} />
 
             <button
                 aria-label="prev"
-                className="absolute inset-y-0 left-0 z-20 w-1/2 cursor-pointer"
+                className="absolute inset-y-0 left-0 z-20 w-1/2"
                 onClick={() => go("prev")}
                 type="button"
             >
             </button>
             <button
                 aria-label="next"
-                className="absolute inset-y-0 right-0 z-20 w-1/2 cursor-pointer"
+                className="absolute inset-y-0 right-0 z-20 w-1/2"
                 onClick={() => go("next")}
                 type="button"
             >
