@@ -86,7 +86,7 @@ function Wallpaper({
 function Title({ hidden = false, product, titleRef }: { hidden?: boolean, product: ProductCard, titleRef: RefObject<HTMLHeadingElement | null> }) {
     return (
         <h1
-            className="absolute bottom-[30%] left-0 w-full text-center font-mono text-4xl text-white data-[hidden=true]:opacity-0"
+            className="absolute bottom-35 left-0 w-full text-center font-mono text-3xl text-white data-[hidden=true]:opacity-0"
             ref={titleRef}
             data-hidden={hidden ? 'true' : 'false'}
         >
@@ -94,6 +94,23 @@ function Title({ hidden = false, product, titleRef }: { hidden?: boolean, produc
                 product.title
             }
         </h1>
+    )
+}
+
+function StoryBars({ index, products }: { index: number; products: ProductCard[] }) {
+    return (
+        <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 top-8 z-10 flex gap-1 px-5 max-w-90 mx-auto"
+        >
+            {products.map((product, productIndex) => (
+                <span
+                    key={product.id}
+                    data-active={productIndex === index ? "true" : "false"}
+                    className="h-1 flex-1 rounded-full bg-white/45 data-[active=true]:bg-white"
+                />
+            ))}
+        </div>
     )
 }
 
@@ -116,7 +133,7 @@ function Shoe({
     return (
         <div
             ref={frameRef}
-            className="absolute top-[50%] left-1/2 z-10 w-3/5 -translate-x-1/2 -translate-y-1/2 data-[hidden=true]:opacity-0"
+            className="absolute top-[50%] left-1/2 z-10 w-2/5 -translate-x-1/2 -translate-y-1/2 data-[hidden=true]:opacity-0"
             data-hidden={hidden ? "true" : "false"}
         >
             <Image
@@ -346,7 +363,7 @@ export default function Hero({ products }: HeroProps) {
 
     return (
         <section
-            className="relative h-screen min-h-200 w-full cursor-none! overflow-hidden bg-neutral-950 **:cursor-none!"
+            className="relative h-screen max-h-150 w-full cursor-none! overflow-hidden bg-neutral-950 **:cursor-none!"
             onMouseLeave={() => setSide(null)}
             onMouseMove={onMouseMove}
         >
@@ -383,6 +400,8 @@ export default function Hero({ products }: HeroProps) {
             >
                 <Wallpaper frameRef={currentWallpaperRef} priority product={current} />
             </div>
+
+            <StoryBars index={index} products={products} />
 
             <Shoe frameRef={incomingShoeRef} hidden product={incoming} />
             <Shoe frameRef={currentShoeRef} priority product={current} />
