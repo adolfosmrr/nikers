@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 
+import Hero from "@/components/home/Hero";
 import { ProductsGrid } from "@/components/product/products-grid";
 import { Container } from "@/components/ui/container";
-import { Page } from "@/components/ui/page";
-import { Sections } from "@/components/ui/sections";
+
 import { shopConfig } from "@/lib/config";
 import { buildAlternates, buildOpenGraph } from "@/lib/seo";
+import { getCollectionResults } from "@/lib/collections/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const title = "Home";
@@ -23,33 +24,20 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function HomePage() {
+export default async function HomePage() {
+  const { products } = await getCollectionResults({ handle: "shoes" })
+  console.log(products.map(item => item.title))
   return (
-    <Page className="pt-0">
-      <Sections>
-        <section className="grid grid-cols-1">
-          <div className="col-start-1 row-start-1 hidden md:block md:aspect-4/1" />
-          <div className="relative col-start-1 row-start-1 flex items-center justify-center px-5 py-10 lg:px-10">
-            <div className="flex flex-col items-center text-center gap-2.5">
-              <h1 className="text-3xl md:text-5xl max-w-3xl text-foreground">
-                A Storefront Built on Vercel Shop
-              </h1>
-              <p className="text-sm md:text-base max-w-xl text-foreground">
-                Agent-ready commerce, powered by Shopify, Next, and Eve.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <Container>
-          <ProductsGrid
-            title="Products"
-            eagerCount={4}
-            limit={8}
-            collectionUrl="/collections/all"
-          />
-        </Container>
-      </Sections>
-    </Page>
+    <div className="w-full h-auto flex flex-col items-center justify-between">
+      <Hero products={products} />
+      <Container>
+        <ProductsGrid
+          title="Products"
+          eagerCount={4}
+          limit={8}
+          collectionUrl="/collections/all"
+        />
+      </Container>
+    </div>
   );
 }

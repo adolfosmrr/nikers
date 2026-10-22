@@ -145,10 +145,20 @@ export const PRODUCT_CARD_FRAGMENT = gql(
     availableForSale
     isGiftCard
     featuredImage {
-      url
-        altText
-        width
-        height
+      url 
+      altText
+      width
+      height
+    }
+    wallpaper: metafield(namespace: "custom", key: "product_wallpaper") {
+      reference {
+        ... on MediaImage {
+          image {
+            url
+            altText
+          }
+        }
+      }
     }
     priceRange {
       minVariantPrice {

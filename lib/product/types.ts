@@ -60,6 +60,7 @@ export interface ProductCard {
   compareAtPrice?: Money;
   defaultVariantSelectedOptions?: SelectedOption[];
   featuredImage: Image | null;
+  wallpaper?: { url: string; altText?: string | null };
   handle: string;
   id: string;
   isGiftCard: boolean;

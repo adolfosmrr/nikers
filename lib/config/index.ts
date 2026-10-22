@@ -6,7 +6,7 @@ const defaultUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
 
 export const shopConfig = {
   agent: {
-    isEnabled: false,
+    isEnabled: true,
   },
   analytics: {
     shopify: {
@@ -68,7 +68,7 @@ export const shopConfig = {
   site: {
     description:
       "A Storefront Built on Vercel Shop. Agent-ready commerce, powered by Shopify, Next, and Eve.",
-    name: "Vercel Shop",
+    name: "Nikers",
     url: defaultUrl,
   },
 } satisfies ShopConfig;
