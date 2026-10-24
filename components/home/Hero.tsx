@@ -1,9 +1,11 @@
 "use client"
 
 import { useState, useEffect, useLayoutEffect, useRef, type RefObject } from "react";
+import { flushSync } from "react-dom";
 import Image from "next/image";
 import gsap from 'gsap'
 
+import { formatPrice } from "@/lib/money"
 import { ProductCard } from "@/lib/product/types"
 
 interface HeroProps {
@@ -11,6 +13,12 @@ interface HeroProps {
 }
 
 type Direction = "next" | "prev";
+
+const BAR_GAP = 0.1
+const BAR_SHRINK = 0.4
+const FILL_CATCH_UP = 0.22
+const HOLD_MS = 300
+const SLIDE_DURATION = 5
 
 const MATRIX_GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
@@ -83,32 +91,71 @@ function Wallpaper({
     )
 }
 
-function Title({ hidden = false, product, titleRef }: { hidden?: boolean, product: ProductCard, titleRef: RefObject<HTMLHeadingElement | null> }) {
+function TitlePriceButton({
+    hidden = false,
+    priceRef,
+    product,
+    titleRef,
+}: {
+    hidden?: boolean
+    priceRef: RefObject<HTMLParagraphElement | null>
+    product: ProductCard
+    titleRef: RefObject<HTMLHeadingElement | null>
+}) {
     return (
-        <h1
-            className="absolute bottom-35 left-0 w-full text-center font-mono text-3xl text-white data-[hidden=true]:opacity-0"
-            ref={titleRef}
-            data-hidden={hidden ? 'true' : 'false'}
+        <div
+            className="absolute bottom-40 left-0 w-full data-[hidden=true]:pointer-events-none data-[hidden=true]:opacity-0"
+            data-hidden={hidden ? "true" : "false"}
         >
-            {
-                product.title
-            }
-        </h1>
+            <h1
+                className="text-center font-mono text-2xl font-bold text-white"
+                ref={titleRef}
+            >
+                {product.title}
+            </h1>
+            <div className="absolute inset-x-0 top-full z-30 mt-2.5 flex flex-col items-center gap-4">
+                <p
+                    className="text-center font-mono font-bold text-xl text-white"
+                    ref={priceRef}
+                >
+                    {formatPrice(product.price)}
+                </p>
+                <button
+                    className="cursor-pointer px-5 py-2 font-mono text-sm font-semibold bg-black/70 text-white"
+                    onPointerDown={(event) => event.stopPropagation()}
+                    type="button"
+                >
+                    Buy it now
+                </button>
+            </div>
+        </div>
     )
 }
 
-function StoryBars({ index, products }: { index: number; products: ProductCard[] }) {
+function StoryBars({
+    barsRef,
+    products,
+}: {
+    barsRef: RefObject<Array<HTMLSpanElement | null>>
+    products: ProductCard[]
+}) {
     return (
         <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 top-8 z-10 flex gap-1 px-5 max-w-90 mx-auto"
+            className="pointer-events-none absolute inset-x-0 top-20 z-10 mx-auto flex max-w-90 gap-1 px-5"
         >
             {products.map((product, productIndex) => (
                 <span
                     key={product.id}
-                    data-active={productIndex === index ? "true" : "false"}
-                    className="h-1 flex-1 rounded-full bg-white/45 data-[active=true]:bg-white"
-                />
+                    className="h-1 flex-1 overflow-hidden rounded-full bg-white/25"
+                >
+                    <span
+                        ref={(node) => {
+                            if (node) barsRef.current[productIndex] = node
+                        }}
+                        className="block h-full w-full origin-left scale-x-0 bg-white"
+                    />
+                </span>
             ))}
         </div>
     )
@@ -163,6 +210,8 @@ export default function Hero({ products }: HeroProps) {
     const incomingWallpaperRef = useRef<HTMLDivElement>(null)
     const currentTitleRef = useRef<HTMLHeadingElement>(null)
     const incomingTitleRef = useRef<HTMLHeadingElement>(null)
+    const currentPriceRef = useRef<HTMLParagraphElement>(null)
+    const incomingPriceRef = useRef<HTMLParagraphElement>(null)
     const currentShoeRef = useRef<HTMLDivElement>(null)
     const incomingShoeRef = useRef<HTMLDivElement>(null)
     const busyRef = useRef(false)
@@ -178,13 +227,33 @@ export default function Hero({ products }: HeroProps) {
     const redShiftRef = useRef<SVGFEOffsetElement>(null)
     const blueShiftRef = useRef<SVGFEOffsetElement>(null)
     const titleMatrixRef = useRef<(() => void) | null>(null)
+    const barsRef = useRef<Array<HTMLSpanElement | null>>([])
+    const fillTweenRef = useRef<gsap.core.Tween | null>(null)
+    const shrinkTweenRef = useRef<gsap.core.Tween | null>(null)
+    const delayRef = useRef<gsap.core.Tween | null>(null)
+    const catchUpRef = useRef<gsap.core.Tween | null>(null)
+    const handoffRef = useRef<(direction: Direction) => void>(() => {})
+    const startLoadingRef = useRef<(barIndex: number) => void>(() => {})
+    const heldRef = useRef(false)
+    const pressStartRef = useRef(0)
+    const suppressClickRef = useRef(false)
+    const switchingRef = useRef(false)
 
     useEffect(() => {
         return () => {
             timelineRef.current?.kill();
             titleMatrixRef.current?.()
+            fillTweenRef.current?.kill()
+            shrinkTweenRef.current?.kill()
+            delayRef.current?.kill()
+            catchUpRef.current?.kill()
         }
     }, [])
+
+    useLayoutEffect(() => {
+        if (total < 2) return
+        startLoadingRef.current(0)
+    }, [total])
 
     useLayoutEffect(() => {
         const label = labelRef.current
@@ -247,6 +316,7 @@ export default function Hero({ products }: HeroProps) {
         )
 
         busyRef.current = false;
+        switchingRef.current = false;
         if (total < 2) return;
         setIncomingIndex(neighbor(index, sideRef.current, total));
     }, [index, total])
@@ -276,8 +346,116 @@ export default function Hero({ products }: HeroProps) {
         if (direction === side) return
         setSide(direction)
         setWord(direction === "prev" ? "Prev" : "Next")
-        if (busyRef.current || total < 2) return
+        if (busyRef.current || switchingRef.current || total < 2) return
         setIncomingIndex(neighbor(index, direction, total))
+    }
+
+    function startLoading(barIndex: number) {
+        const fill = barsRef.current[barIndex]
+        if (!fill || total < 2) return
+
+        fillTweenRef.current?.kill()
+        gsap.set(fill, { scaleX: 0, transformOrigin: "left center" })
+        fillTweenRef.current = gsap.to(fill, {
+            scaleX: 1,
+            duration: SLIDE_DURATION,
+            ease: "none",
+            onComplete: () => handoffRef.current("next"),
+        })
+        if (heldRef.current) fillTweenRef.current.pause()
+    }
+
+    function shrinkBar(barIndex: number, direction: Direction) {
+        const fill = barsRef.current[barIndex]
+        if (!fill) return
+
+        shrinkTweenRef.current?.kill()
+        if (direction === "next") {
+            gsap.set(fill, { scaleX: 1, transformOrigin: "right center" })
+        } else {
+            gsap.set(fill, { transformOrigin: "left center" })
+        }
+        shrinkTweenRef.current = gsap.to(fill, {
+            scaleX: 0,
+            duration: BAR_SHRINK,
+            ease: "power2.in",
+        })
+    }
+
+    function beginChange(direction: Direction) {
+        const target = neighbor(index, direction, total)
+        shrinkBar(index, direction)
+        startLoading(target)
+        go(direction)
+    }
+
+    function handoff(direction: Direction) {
+        if (busyRef.current || switchingRef.current || total < 2) return
+
+        switchingRef.current = true
+        const running = fillTweenRef.current
+        fillTweenRef.current = null
+        if (running && running.progress() < 1) running.kill()
+        delayRef.current?.kill()
+        catchUpRef.current?.kill()
+        const target = neighbor(index, direction, total)
+        flushSync(() => setIncomingIndex(target))
+
+        const fill = barsRef.current[index]
+        const scale = fill ? Number(gsap.getProperty(fill, "scaleX")) : 1
+        const leave = () => beginChange(direction)
+
+        if (direction === "prev" || scale >= 0.995 || !fill) {
+            leave()
+            return
+        }
+
+        catchUpRef.current = gsap.to(fill, {
+            scaleX: 1,
+            duration: FILL_CATCH_UP,
+            ease: "power1.out",
+            onComplete: () => {
+                delayRef.current = gsap.delayedCall(BAR_GAP, leave)
+            },
+        })
+    }
+
+    function onPointerDown(event: React.PointerEvent<HTMLElement>) {
+        if (event.button !== 0) return
+        event.currentTarget.setPointerCapture(event.pointerId)
+        heldRef.current = true
+        pressStartRef.current = performance.now()
+        suppressClickRef.current = false
+        fillTweenRef.current?.pause()
+    }
+
+    function onPointerUp(event: React.PointerEvent<HTMLElement>) {
+        if (!heldRef.current) return
+        heldRef.current = false
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+            event.currentTarget.releasePointerCapture(event.pointerId)
+        }
+        const held = performance.now() - pressStartRef.current >= HOLD_MS
+        suppressClickRef.current = true
+        if (held) {
+            if (!switchingRef.current && !busyRef.current) fillTweenRef.current?.resume()
+            return
+        }
+        if (switchingRef.current || busyRef.current) {
+            fillTweenRef.current?.resume()
+            return
+        }
+        const bounds = event.currentTarget.getBoundingClientRect()
+        const direction: Direction = event.clientX - bounds.left < bounds.width / 2 ? "prev" : "next"
+        handoff(direction)
+    }
+
+    function onSlideClick(direction: Direction) {
+        if (suppressClickRef.current) {
+            suppressClickRef.current = false
+            return
+        }
+        handoff(direction)
     }
 
     function go(direction: Direction) {
@@ -297,8 +475,14 @@ export default function Hero({ products }: HeroProps) {
         if (incomingShoeRef.current) incomingShoeRef.current.style.filter = "url(#shoe-smear)"
         sideRef.current = direction;
 
+        const arriving = products[target] ?? incoming
         titleMatrixRef.current?.()
-        titleMatrixRef.current = playMatrix([currentTitleRef.current], incoming.title, false)
+        const stopTitle = playMatrix([currentTitleRef.current], arriving.title, false)
+        const stopPrice = playMatrix([currentPriceRef.current], formatPrice(arriving.price), false)
+        titleMatrixRef.current = () => {
+            stopTitle()
+            stopPrice()
+        }
 
         const currentWallpaper = currentWallpaperRef.current
         const incomingWallpaper = incomingWallpaperRef.current
@@ -358,14 +542,19 @@ export default function Hero({ products }: HeroProps) {
             }, 0)
             .to(blueShiftRef.current, {
                 attr: { dx: 0 }, duration: 0.45, ease: "power2.in"
-            }, 0.35)
+            },             0.35)
     }
+
+    handoffRef.current = handoff
+    startLoadingRef.current = startLoading
 
     return (
         <section
             className="relative h-screen max-h-150 w-full cursor-none! overflow-hidden bg-neutral-950 **:cursor-none!"
             onMouseLeave={() => setSide(null)}
             onMouseMove={onMouseMove}
+            onPointerDown={onPointerDown}
+            onPointerUp={onPointerUp}
         >
             <svg aria-hidden="true" className="absolute h-0 w-0">
                 <filter id="shoe-smear" x="-20%" y="0%" width="140%" height="100%">
@@ -401,25 +590,25 @@ export default function Hero({ products }: HeroProps) {
                 <Wallpaper frameRef={currentWallpaperRef} priority product={current} />
             </div>
 
-            <StoryBars index={index} products={products} />
+            <StoryBars barsRef={barsRef} products={products} />
 
             <Shoe frameRef={incomingShoeRef} hidden product={incoming} />
             <Shoe frameRef={currentShoeRef} priority product={current} />
 
-            <Title hidden product={incoming} titleRef={incomingTitleRef} />
-            <Title product={current} titleRef={currentTitleRef} />
+            <TitlePriceButton hidden priceRef={incomingPriceRef} product={incoming} titleRef={incomingTitleRef} />
+            <TitlePriceButton priceRef={currentPriceRef} product={current} titleRef={currentTitleRef} />
 
             <button
                 aria-label="prev"
                 className="absolute inset-y-0 left-0 z-20 w-1/2"
-                onClick={() => go("prev")}
+                onClick={() => onSlideClick("prev")}
                 type="button"
             >
             </button>
             <button
                 aria-label="next"
                 className="absolute inset-y-0 right-0 z-20 w-1/2"
-                onClick={() => go("next")}
+                onClick={() => onSlideClick("next")}
                 type="button"
             >
             </button>
@@ -427,23 +616,23 @@ export default function Hero({ products }: HeroProps) {
                 ref={labelRef}
                 aria-hidden="true"
                 data-visible={side ? "true" : "false"}
-                className="pointer-events-none absolute top-0 left-0 z-30 opacity-0 select-none data-[visible=true]:opacity-100"
+                className="pointer-events-none absolute top-0 left-0 z-30 opacity-0 select-none data-[visible=true]:opacity-100 mix-blend-difference"
             >
                 <span
                     ref={cyanWordRef}
-                    className="absolute top-0 left-0 text-5xl font-semibold tracking-widest text-cyan-400 uppercase opacity-0 mix-blend-screen"
+                    className="absolute top-0 left-0 text-3xl font-semibold tracking-widest text-cyan-400 uppercase opacity-0 mix-blend-screen"
                 >
                     {word}
                 </span>
                 <span
                     ref={magentaWordRef}
-                    className="absolute top-0 left-0 text-5xl font-semibold tracking-widest text-fuchsia-400 uppercase opacity-0 mix-blend-screen"
+                    className="absolute top-0 left-0 text-3xl font-semibold tracking-widest text-fuchsia-400 uppercase opacity-0 mix-blend-screen"
                 >
                     {word}
                 </span>
                 <span
                     ref={mainWordRef}
-                    className="relative text-5xl font-semibold tracking-widest text-white uppercase"
+                    className="relative text-3xl font-semibold tracking-widest text-white uppercase"
                 >
                     {word}
                 </span>

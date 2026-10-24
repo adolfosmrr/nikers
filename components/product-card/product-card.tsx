@@ -33,6 +33,8 @@ export function ProductCard({ loading, outOfStockText, product, quickShopText }:
           loading={loading}
           outOfStock={!product.availableForSale}
           outOfStockText={outOfStockText}
+          wallpaperAlt={product.wallpaper?.altText || product.title}
+          wallpaperSrc={product.wallpaper?.url}
           width={product.featuredImage?.width}
         >
           {quickShopText && product.availableForSale && !product.isGiftCard ? (

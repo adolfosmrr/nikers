@@ -64,7 +64,7 @@ export function ChatMessage({
     (part) => part.type === "dynamic-tool" && part.state === "approval-requested",
   );
   return (
-    <div className="grid gap-2.5 text-foreground text-sm">
+    <div className="grid gap-2.5 text-white text-sm">
       <AgentThinking
         active={isStreaming && !text}
         tool={active?.type === "dynamic-tool" ? active.toolName : undefined}

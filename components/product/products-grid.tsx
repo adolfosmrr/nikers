@@ -29,18 +29,8 @@ interface ProductsGridProps {
 
 export function ProductsGrid({ collectionUrl, eagerCount = 0, limit, title }: ProductsGridProps) {
   return (
-    <div className="grid gap-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl sm:text-3xl">{title}</h2>
-        {collectionUrl && (
-          <Link
-            href={collectionUrl}
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            View All
-          </Link>
-        )}
-      </div>
+    <div className="grid gap-4 pt-10">
+      <h2 className="text-2xl sm:text-3xl font-mono font-bold mb-3">{title}</h2>
       <Suspense fallback={<ProductsGridSkeleton count={limit} />}>
         <ProductsGridContent eagerCount={eagerCount} limit={limit} outOfStockText="Out of Stock" />
       </Suspense>
@@ -63,7 +53,7 @@ async function ProductsGridContent({
   });
   if (products.length === 0) return null;
   return (
-    <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
+    <div className="grid grid-cols-3 gap-5 lg:grid-cols-4">
       {products.map((product, index) => (
         <ProductCard
           key={product.id}

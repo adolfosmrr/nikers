@@ -12,7 +12,7 @@ export async function CartIcon() {
 
 export function CartIconFallback() {
   return (
-    <span className="flex items-center justify-center gap-1.5 text-foreground">
+    <span className="flex items-center justify-center gap-1.5 text-white">
       <HandbagIcon className="size-5" />
       <span className="sr-only">Cart</span>
     </span>

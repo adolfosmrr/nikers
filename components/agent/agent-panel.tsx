@@ -250,7 +250,7 @@ export function AgentPanel({ onOpenChange, open, triggerRef }: AgentPanelProps) 
     >
       <SheetContent
         ref={panelRef}
-        className="gap-0 p-0"
+        className="gap-0 bg-black/90 p-0 backdrop-blur-[5px]"
         closeButton={false}
         finalFocus={triggerRef}
         initialFocus={() => panelRef.current?.querySelector("textarea") ?? true}
@@ -259,11 +259,11 @@ export function AgentPanel({ onOpenChange, open, triggerRef }: AgentPanelProps) 
         side="right"
       >
         <div className="flex h-16 shrink-0 items-center justify-between gap-2 px-2.5">
-          <SheetTitle className="font-normal text-xl leading-4">Shop Agent</SheetTitle>
+          <SheetTitle className="font-normal text-xl leading-4 text-white font-bold">Shop Agent</SheetTitle>
           <div className="flex items-center gap-2.5">
             <button
               aria-label="Clear chat"
-              className="flex cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex cursor-pointer items-center justify-center transition-colors hover:text-white/50 text-white disabled:cursor-not-allowed disabled:opacity-40"
               disabled={clearing || (!messages.length && !input.trim() && !agent.session && !busy)}
               onClick={handleClear}
               type="button"
@@ -272,7 +272,7 @@ export function AgentPanel({ onOpenChange, open, triggerRef }: AgentPanelProps) 
             </button>
             <SheetClose
               aria-label="Close Shop Agent"
-              className="flex cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+              className="flex cursor-pointer items-center justify-center text-white transition-colors hover:text-white/50"
             >
               <XIcon className="size-5" />
             </SheetClose>
@@ -308,7 +308,7 @@ export function AgentPanel({ onOpenChange, open, triggerRef }: AgentPanelProps) 
                 ? showRestoring && (
                     <p className="text-muted-foreground text-sm">Restoring your conversation…</p>
                   )
-                : !awaitingReply && <p className="text-foreground text-sm">Hi, how can I help?</p>
+                : !awaitingReply && <p className="text-white text-sm font-bold">Hi, how can I help?</p>
               : messages.map((message, index) => (
                   <ChatMessage
                     key={message.id}

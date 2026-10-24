@@ -39,7 +39,25 @@ interface ProductCardImageProps {
   outOfStock?: boolean;
   outOfStockText?: string;
   src?: string | null;
+  wallpaperAlt?: string;
+  wallpaperSrc?: string | null;
   width?: number;
+}
+
+interface ProductWallpaperProps {
+  alt: string;
+  src?: string | null;
+}
+
+function ProductWallpaper({ alt, src }: ProductWallpaperProps) {
+  if (!src) return null;
+
+  return (
+    <div className="absolute inset-0 z-1">
+      <Image alt={alt} className="object-cover relative z-1" fill sizes="100vw" src={src} />
+      <div className="absolute inset-0 z-2 bg-black/50 backdrop-blur-[1px]" />
+    </div>
+  );
 }
 
 function ProductCardImage({
@@ -51,31 +69,33 @@ function ProductCardImage({
   outOfStock = false,
   outOfStockText,
   src,
+  wallpaperAlt,
+  wallpaperSrc,
   width,
 }: ProductCardImageProps) {
   return (
     <div
       data-slot="product-card-image"
-      className={cn("relative aspect-square overflow-hidden", className)}
-    >
-      {src ? (
-        <Image
-          src={src}
-          alt={alt}
-          {...(width && height ? { height, width } : { fill: true })}
-          className="absolute inset-0 size-full object-cover"
-          loading={loading}
-          sizes="100vw"
-        />
-      ) : (
-        <ImagePlaceholder className="size-full" />
+      className={cn(
+        "relative flex aspect-square h-auto items-center justify-center overflow-hidden",
+        className,
       )}
-      {outOfStock && (
-        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-          <span className="text-destructive-foreground font-medium text-xs px-2 py-1 bg-destructive rounded">
-            {outOfStockText}
-          </span>
+    >
+      
+      {src ? (
+        <div className="relative size-full flex justify-center items-center">
+          <Image
+            src={src}
+            alt={alt}
+            {...(width && height ? { height, width } : { fill: true })}
+            className="relative z-2 mx-auto block w-4/5 object-cover"
+            loading={loading}
+            sizes="100vw"
+          />
+          <ProductWallpaper alt={wallpaperAlt ?? alt} src={wallpaperSrc} />
         </div>
+      ) : (
+        <ImagePlaceholder className="relative z-1 size-full" />
       )}
       {children}
     </div>

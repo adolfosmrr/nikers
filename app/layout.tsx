@@ -57,7 +57,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
 
         <CartProviderWrapper cartData={cartData}>
           <Nav />
-          <main id="main-content" className="flex flex-1 flex-col min-w-0">
+          <main id="main-content" className="flex flex-1 flex-col min-w-0 pt-16">
             {children}
           </main>
           <Footer />

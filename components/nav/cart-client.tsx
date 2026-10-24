@@ -21,7 +21,7 @@ export function CartIconClient({ cartLabel, initialCart }: CartIconClientProps) 
   return (
     <button
       onClick={openOverlay}
-      className="flex cursor-pointer items-center justify-center gap-1.5 text-foreground hover:text-foreground/80 transition-colors"
+      className="flex cursor-pointer items-center justify-center gap-1.5 text-white transition-colors hover:text-white/80"
       type="button"
     >
       <span className="relative">
