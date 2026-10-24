@@ -41,7 +41,7 @@ function Logo() {
 export function Nav() {
   return (
     <nav
-      className="fixed top-0 z-30 w-full pt-[env(safe-area-inset-top,0px)] transition-shadow duration-250 max-[800px]:hidden max-[390px]:block"
+      className="fixed top-0 z-30 w-full pt-[env(safe-area-inset-top,0px)] transition-shadow duration-250 min-[421px]:max-[800px]:hidden"
       id="nav-outer"
     >
       <Container className="flex h-16 items-center gap-2.5 md:gap-5">

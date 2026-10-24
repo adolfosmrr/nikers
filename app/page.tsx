@@ -29,7 +29,7 @@ export default async function HomePage() {
   console.log(products.map(item => item.title))
   return (
     <>
-    <div className="-mt-16 flex h-auto w-full flex-col items-center justify-between max-[800px]:hidden max-[390px]:flex">
+    <div className="-mt-16 flex h-auto w-full flex-col items-center justify-between min-[421px]:max-[800px]:hidden">
       <Hero products={products} />
       <Container>
         <ProductsGrid
@@ -40,8 +40,8 @@ export default async function HomePage() {
         />
       </Container>
     </div>
-    <div className=" hidden w-full h-screen bg-black max-[800px]:flex max-[800px]:justify-center max-[800px]:items-center max-[800px]:px-5 max-[390px]:flex">
-        <p className="font-mono text-2xl text-white text-center text-balance">This store is only available within screens with 800px or more and 390px or less.</p>
+    <div className="hidden w-full h-dvh items-center justify-center bg-black px-5 min-[421px]:max-[800px]:flex">
+        <p className="font-mono text-2xl text-white text-center text-balance">This store is only available within screens with 800px or more and 420px or less.</p>
     </div>
     </>
   );

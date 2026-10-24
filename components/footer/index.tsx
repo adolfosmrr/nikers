@@ -16,7 +16,7 @@ export async function Footer() {
   const items: MenuItem[] = [];
   const policies = await getShopPolicies({}).catch(() => []);
   return (
-    <footer>
+    <footer className="min-[421px]:max-[800px]:hidden">
       {/* pb-22 clears the fixed agent ActionBar pill when it renders */}
       <Container className={cn("pt-20 pb-10", shopConfig.agent.isEnabled && "pb-22")}>
         <Sections className="gap-10">
