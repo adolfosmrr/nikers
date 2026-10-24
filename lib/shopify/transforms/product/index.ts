@@ -176,7 +176,7 @@ function transformProductCard(
     handle: product.handle,
     title: product.title,
     featuredImage: transformImage(matchedVariant?.image ?? product.featuredImage),
-    wallpaper: product.wallpaper?.reference?.image ?? null,
+    wallpaper: product.wallpaper?.reference && "image" in product.wallpaper.reference ? product.wallpaper.reference.image ?? undefined : undefined,
     price: product.priceRange.minVariantPrice,
     maxPrice: product.priceRange.maxVariantPrice,
     compareAtPrice: product.compareAtPriceRange.minVariantPrice,
