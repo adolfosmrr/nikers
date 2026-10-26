@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from "react"
 import { useRouter } from "next/navigation"
+import { PrefetchKind } from "next/dist/client/components/router-reducer/router-reducer-types"
 import gsap from "gsap"
 import { Flip } from "gsap/Flip"
 
@@ -86,7 +87,9 @@ export function Hero({ products }: HeroProps) {
       })
     }
     // Empezamos a pedir la página ya, mientras corre la animación de salida.
-    router.prefetch(href)
+    // "full" trae también los datos dinámicos (título, precio, descripción), no solo el esqueleto,
+    // así cuando navegamos la columna derecha ya está lista.
+    router.prefetch(href, { kind: PrefetchKind.FULL })
     const ease = "power2.in"
 
     // Flecha de una card: primero se va todo lo demás y después esa card crece hasta ser
@@ -125,14 +128,15 @@ export function Hero({ products }: HeroProps) {
         })
       }
 
+      // Salida más corta (0.35s en vez de 0.5s) para que la expansión arranque antes.
+      // Esperamos a que TERMINE: si Flip saca la "foto" con las otras cards a mitad de camino,
+      // las anima desde ahí y se ven pasando por detrás de la card que crece.
       exitTimeline.current = gsap
-        .timeline()
-        .to(root.querySelectorAll('[data-exit="up"]'), { y: -40, autoAlpha: 0, duration: 0.5, ease }, 0)
-        .to(root.querySelectorAll('[data-exit="down"]'), { y: 40, autoAlpha: 0, duration: 0.5, ease }, 0)
-        .to(cards.filter((c) => c !== card), { x: 80, autoAlpha: 0, duration: 0.5, stagger: 0.06, ease }, 0)
-        .to(card.querySelectorAll("[data-card-chrome]"), { autoAlpha: 0, duration: 0.3 }, 0)
-        // La expansión del fondo y el reposicionamiento arrancan 150ms antes de que termine la salida.
-        .call(() => jump(step), [], 0.35)
+        .timeline({ onComplete: () => jump(step) })
+        .to(root.querySelectorAll('[data-exit="up"]'), { y: -40, autoAlpha: 0, duration: 0.35, ease }, 0)
+        .to(root.querySelectorAll('[data-exit="down"]'), { y: 40, autoAlpha: 0, duration: 0.35, ease }, 0)
+        .to(cards.filter((c) => c !== card), { x: 80, autoAlpha: 0, duration: 0.3, stagger: 0.03, ease }, 0)
+        .to(card.querySelectorAll("[data-card-chrome]"), { autoAlpha: 0, duration: 0.25 }, 0)
       return
     }
 
@@ -157,7 +161,10 @@ export function Hero({ products }: HeroProps) {
     const tl = gsap.timeline({
       onComplete: () => {
         if (pendingHref.current) {
-          router.push(pendingHref.current)
+          // Lo vaciamos antes de navegar: si no, un Next/Prev posterior podría "recordar" este href.
+          const href = pendingHref.current
+          pendingHref.current = null
+          router.push(href)
           return
         }
         animating.current = false

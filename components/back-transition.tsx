@@ -29,8 +29,11 @@ export function BackTransition() {
   const pendingFade = useRef<{ black: HTMLElement; overlay: HTMLElement } | null>(null)
 
   // A) Atrás / adelante
+  // Usamos la Navigation API ("navigate"), que avisa ANTES de que cambie la página.
+  // "popstate" llega tarde en producción: Next ya pintó la página nueva y la "foto" salía mal.
+  // Si el navegador no tiene Navigation API, caemos a popstate.
   useEffect(() => {
-    const onPopState = () => {
+    const fadeFromSnapshot = () => {
       const main = document.getElementById("main-content")
       if (!main) return
       pendingFade.current = null
@@ -50,10 +53,17 @@ export function BackTransition() {
         .to(black, { opacity: 0, duration: 0.5, ease: "power2.out" }, "+=0.1")
     }
 
-    // capture: true para correr ANTES que el listener de Next.js. En producción Next renderiza
-    // la página nueva dentro de su propio popstate, así que si llegamos después la "foto" ya es la nueva.
-    window.addEventListener("popstate", onPopState, { capture: true })
-    return () => window.removeEventListener("popstate", onPopState, { capture: true })
+    const navigation = (window as Window & { navigation?: EventTarget }).navigation
+    if (navigation) {
+      const onNavigate = (event: Event) => {
+        if ((event as Event & { navigationType?: string }).navigationType === "traverse") fadeFromSnapshot()
+      }
+      navigation.addEventListener("navigate", onNavigate)
+      return () => navigation.removeEventListener("navigate", onNavigate)
+    }
+
+    window.addEventListener("popstate", fadeFromSnapshot, { capture: true })
+    return () => window.removeEventListener("popstate", fadeFromSnapshot, { capture: true })
   }, [])
 
   // B) Click en un link con data-fade-link
