@@ -1,6 +1,7 @@
 import { PredictiveSearchProvider } from "@shopify/hydrogen/react";
 import { Suspense } from "react";
 
+import { AgentButton } from "@/components/agent/agent-button";
 import { Container } from "@/components/ui/container";
 import { Link } from "@/components/ui/link";
 import { shopConfig } from "@/lib/config";
@@ -45,11 +46,13 @@ export function Nav() {
       id="nav-outer"
     >
       <Container className="flex h-16 items-center gap-2.5 md:gap-5">
-        <Link aria-label={shopConfig.site.name} className="flex shrink-0 items-center" href="/">
+        <Link aria-label={shopConfig.site.name} className="flex shrink-0 items-center" data-fade-link href="/">
           <Logo />
         </Link>
 
         <div className="flex items-center gap-5 ml-auto">
+          {/* Botón del chat con el agente de IA, a la izquierda de la búsqueda */}
+          {shopConfig.agent.isEnabled && <AgentButton />}
           {shopConfig.search.isEnabled && (
             <PredictiveSearchProvider
               debounceInMs={300}

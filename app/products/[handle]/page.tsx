@@ -7,12 +7,10 @@ import {
   ProductDetailSection,
   ProductDetailSkeleton,
 } from "@/components/product-detail/product-detail-section";
+import { ProductStageFallback } from "@/components/product-detail/product-stage-fallback";
 import { RecentlyViewedRecorder } from "@/components/product-detail/recently-viewed";
-import { RelatedProductsSection } from "@/components/product/related-products-section";
 import { Container } from "@/components/ui/container";
 import { Page } from "@/components/ui/page";
-import { Sections } from "@/components/ui/sections";
-import { shopConfig } from "@/lib/config";
 import { defaultSelectedOptions, parseSelectedOptions, toSelectedOptionList } from "@/lib/product";
 import { getProduct, getSearchIndexProducts } from "@/lib/product/server";
 import { type SelectedOptions } from "@/lib/product/types";
@@ -78,13 +76,19 @@ export async function generateMetadata({
 export default function ProductPage({ params, searchParams }: PageProps<"/products/[handle]">) {
   return (
     <Page className="pt-0">
-      <Container className="bg-background">
-        <Sections>
-          <Suspense fallback={<ProductDetailSkeleton />}>
-            <ProductPageContent params={params} searchParams={searchParams} />
-          </Suspense>
-        </Sections>
-      </Container>
+      <Suspense
+        fallback={
+          <ProductStageFallback
+            skeleton={
+              <Container>
+                <ProductDetailSkeleton />
+              </Container>
+            }
+          />
+        }
+      >
+        <ProductPageContent params={params} searchParams={searchParams} />
+      </Suspense>
     </Page>
   );
 }
@@ -151,9 +155,6 @@ async function ProductPageContent({
         selectedOptionsPromise={selectedOptionsPromise}
         variantPromise={variantPromise}
       />
-      {shopConfig.pdp.relatedProducts.isEnabled ? (
-        <RelatedProductsSection handle={handle} limit={4} />
-      ) : null}
     </>
   );
 }

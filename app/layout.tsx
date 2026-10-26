@@ -5,13 +5,11 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
 
-import { ActionBar } from "@/components/action-bar";
-import { AgentButton } from "@/components/agent/agent-button";
 import { AnalyticsComponents } from "@/components/analytics";
+import { BackTransition } from "@/components/back-transition";
 import { CartUI } from "@/components/cart/cart-ui";
 import { CartProviderWrapper } from "@/components/cart/context";
 import { CartStandardActionsScript } from "@/components/cart/standard-actions";
-import { Footer } from "@/components/footer";
 import { Nav } from "@/components/nav";
 import { SiteSchema } from "@/components/schema/site-schema";
 import { botIdProtectedRoutes } from "@/lib/botid";
@@ -60,10 +58,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <main id="main-content" className="flex flex-1 flex-col min-w-0 pt-16 min-[421px]:max-[800px]:pt-0">
             {children}
           </main>
-          <Footer />
           <CartUI />
           <Suspense>
-            <ActionBar>{shopConfig.agent.isEnabled && <AgentButton />}</ActionBar>
+            <BackTransition />
           </Suspense>
           <Suspense>
             <AnalyticsComponents />

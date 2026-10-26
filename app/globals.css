@@ -165,3 +165,22 @@
     -webkit-text-fill-color: currentColor;
   }
 }
+
+/* Barra de scroll fina y blanca (se usa con la clase "scrollbar-white") */
+@utility scrollbar-white {
+  /* Firefox y Chrome/Edge modernos */
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 0.6) transparent;
+
+  /* Safari (y Chrome viejo): pseudo-elementos -webkit- */
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgb(255 255 255 / 0.6);
+    border-radius: 9999px;
+  }
+}

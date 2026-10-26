@@ -9,6 +9,7 @@ export interface AgentProduct {
   price: Money;
   title: string;
   vendor: string | null;
+  wallpaper: string | null;
 }
 
 interface AgentOptionValue {

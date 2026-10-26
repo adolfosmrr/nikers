@@ -30,6 +30,7 @@ export function toAgentProduct(product: ProductCard): AgentProduct {
     price: product.price,
     title: product.title,
     vendor: product.vendor ?? null,
+    wallpaper: product.wallpaper?.url ?? null,
   };
 }
 

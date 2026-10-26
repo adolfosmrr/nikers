@@ -203,26 +203,29 @@ function AgentProductCard({ product }: AgentProductCardProps) {
     );
   return (
     <SliderItem>
-      <Link href={`/products/${product.handle}`} className="block">
-        <ProductCard>
-          <ProductCardImageContainer>
-            <ProductCardImage
-              alt={product.title}
-              outOfStock={!product.available}
-              outOfStockText="Out of Stock"
-              src={product.image}
-            />
-            <ProductCardContent>
-              <ProductCardTitle>{product.title}</ProductCardTitle>
-              <ProductCardPrice
-                amount={product.price.amount}
-                compareAtAmount={product.compareAtPrice?.amount}
-                compareAtCurrencyCode={product.compareAtPrice?.currencyCode}
-                currencyCode={product.price.currencyCode}
-              />
-            </ProductCardContent>
-          </ProductCardImageContainer>
-        </ProductCard>
+      {/* Mismo estilo que las cards del Hero: wallpaper de fondo, zapatilla, título y precio en blanco */}
+      <Link
+        href={`/products/${product.handle}`}
+        className="relative block aspect-[13/20] overflow-hidden rounded-2xl bg-neutral-800 text-white"
+      >
+        {product.wallpaper && (
+          <img alt="" className="absolute inset-0 h-full w-full object-cover" src={product.wallpaper} />
+        )}
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px]" />
+
+        {product.image && (
+          <img
+            alt={product.title}
+            className="absolute inset-x-0 inset-y-0 my-auto w-full object-contain px-3"
+            src={product.image}
+          />
+        )}
+
+        <h3 className="relative truncate p-3 font-mono text-sm font-bold">{product.title}</h3>
+
+        <p className="absolute bottom-3 left-3 text-sm">
+          {product.available ? `${product.price.amount} ${product.price.currencyCode}` : "Out of Stock"}
+        </p>
       </Link>
     </SliderItem>
   );

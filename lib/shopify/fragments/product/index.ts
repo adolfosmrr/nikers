@@ -24,6 +24,16 @@ export const PRODUCT_FRAGMENT = gql(
         width
         height
     }
+    wallpaper: metafield(namespace: "custom", key: "product_wallpaper") {
+      reference {
+        ... on MediaImage {
+          image {
+            url
+            altText
+          }
+        }
+      }
+    }
     media(first: 10) {
       edges {
         node {

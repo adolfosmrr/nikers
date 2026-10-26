@@ -100,7 +100,7 @@ export function BuyButtons({
         {quantityPicker ? (
           <div
             aria-label="Item quantity"
-            className="grid h-12 w-32 shrink-0 grid-cols-[3rem_2rem_3rem] rounded-lg bg-background ring-1 ring-border ring-inset"
+            className="grid h-12 w-32 shrink-0 grid-cols-[3rem_2rem_3rem] rounded-lg bg-white text-black ring-1 ring-border ring-inset"
             role="group"
           >
             <button

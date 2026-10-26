@@ -17,12 +17,9 @@ import {
   ProductInfoDescription,
   ProductInfoOptions,
 } from "@/components/product-detail/product-info";
-import {
-  ColorImageCarouselItems,
-  ColorImageGrid,
-  ProductMedia,
-} from "@/components/product-detail/product-media";
 import { ProductPrice } from "@/components/product-detail/product-price";
+import { ProductStage } from "@/components/product-detail/product-stage";
+import { Reveal } from "@/components/product-detail/reveal";
 import { ProductSchema } from "@/components/product-detail/schema";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { Input } from "@/components/ui/input";
@@ -32,9 +29,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { shopConfig } from "@/lib/config";
 import {
   getProductPurchaseOptions,
-  getSelectedColorImage,
-  getSharedImages,
-  hasColorImagePartitioning,
   toProductFormInput,
   toStaticOptionGroups,
 } from "@/lib/product";
@@ -76,85 +70,19 @@ export function ProductDetailSection({
           { name: product.title, path: `/products/${product.handle}` },
         ]}
       />
-      <div className="grid gap-10 lg:grid-cols-10 lg:items-start lg:gap-5">
-        <ProductMediaArea product={product} selectedOptionsPromise={selectedOptionsPromise} />
-        <ProductInfoArea product={product} variantPromise={variantPromise} />
-      </div>
+      <ProductStage
+        shoeAlt={product.featuredImage?.altText || product.title}
+        shoeUrl={product.featuredImage?.url}
+        wallpaperAlt={product.wallpaper?.altText || product.title}
+        wallpaperUrl={product.wallpaper?.url}
+      >
+        {/* Derecha: título, precio, opciones, botón de compra y descripción */}
+        <Reveal className="flex max-h-full w-1/2 flex-col justify-center overflow-y-auto py-10 pr-10">
+          <ProductInfoArea product={product} variantPromise={variantPromise} />
+        </Reveal>
+      </ProductStage>
     </>
   );
-}
-
-function ProductMediaArea({
-  product,
-  selectedOptionsPromise,
-}: {
-  product: ProductDetails;
-  selectedOptionsPromise: Promise<SelectedOptions>;
-}) {
-  if (!hasColorImagePartitioning(product.options)) {
-    return (
-      <ProductMedia
-        otherImages={product.images}
-        videos={product.videos}
-        title={product.title}
-        className="lg:col-span-6"
-      />
-    );
-  }
-
-  return (
-    <ProductMedia
-      otherImages={getSharedImages(product.images, product.options)}
-      videos={product.videos}
-      title={product.title}
-      className="lg:col-span-6"
-      desktopSlot={
-        // Color image is the LCP slot; a pulsing skeleton flashes harder than an empty image canvas.
-        <Suspense fallback={<div className="aspect-square w-full" />}>
-          <ResolvedColorImageGrid
-            product={product}
-            selectedOptionsPromise={selectedOptionsPromise}
-          />
-        </Suspense>
-      }
-      mobileSlot={
-        <Suspense
-          fallback={
-            <div className="relative shrink-0 w-full snap-start snap-always overflow-hidden aspect-square" />
-          }
-        >
-          <ResolvedColorImageCarousel
-            product={product}
-            selectedOptionsPromise={selectedOptionsPromise}
-          />
-        </Suspense>
-      }
-    />
-  );
-}
-
-async function ResolvedColorImageGrid({
-  product,
-  selectedOptionsPromise,
-}: {
-  product: ProductDetails;
-  selectedOptionsPromise: Promise<SelectedOptions>;
-}) {
-  const image = getSelectedColorImage(product, await selectedOptionsPromise);
-  if (!image) return null;
-  return <ColorImageGrid images={[image]} title={product.title} />;
-}
-
-async function ResolvedColorImageCarousel({
-  product,
-  selectedOptionsPromise,
-}: {
-  product: ProductDetails;
-  selectedOptionsPromise: Promise<SelectedOptions>;
-}) {
-  const image = getSelectedColorImage(product, await selectedOptionsPromise);
-  if (!image) return null;
-  return <ColorImageCarouselItems images={[image]} title={product.title} />;
 }
 
 function ProductInfoArea({
@@ -171,13 +99,14 @@ function ProductInfoArea({
   const allInStock = product.defaultVariant?.availableForSale ?? product.availableForSale;
   const hasOptions = options.some((option) => option.values.length > 1);
   return (
-    <div className="grid gap-10 lg:sticky lg:top-20 lg:col-span-4">
+    // Las variables del tema se pisan solo acá: texto blanco y botón blanco con texto negro.
+    <div className="grid max-w-md gap-5 [--border:rgb(255_255_255/0.3)] [--foreground:#ffffff] [--muted-foreground:#d4d4d4] [--primary-foreground:#000000] [--primary:#ffffff]">
       <div
         className="grid data-[uniform-price=true]:gap-10"
         data-uniform-price={product.hasUniformPricing}
       >
         <div data-slot="product-info-header">
-          <h1 className="text-foreground text-3xl">{product.title}</h1>
+          <h1 className="font-mono text-[48px] leading-tight text-balance text-foreground">{product.title}</h1>
           {product.hasUniformPricing ? (
             <ProductPrice
               amount={product.priceRange.minVariantPrice.amount}
@@ -223,7 +152,8 @@ function ProductInfoArea({
         <ComplementaryProducts handle={handle} limit={4} title="Pairs Well With" />
       ) : null}
 
-      <ProductInfoDescription descriptionHtml={descriptionHtml} />
+      {/* "!" = important: gana incluso a colores que vengan en el HTML de Shopify (strong, span, etc.) */}
+      <ProductInfoDescription className="scrollbar-white -mt-10 max-h-[250px] overflow-y-auto pr-3 [&_*]:text-white!" descriptionHtml={descriptionHtml} />
     </div>
   );
 }
@@ -368,7 +298,7 @@ function QuantityPickerFallback() {
   return (
     <div
       aria-hidden="true"
-      className="grid h-12 w-32 shrink-0 grid-cols-[3rem_2rem_3rem] rounded-lg bg-background ring-1 ring-border ring-inset"
+      className="grid h-12 w-32 shrink-0 grid-cols-[3rem_2rem_3rem] rounded-lg bg-white text-black ring-1 ring-border ring-inset"
     >
       <span className="flex size-12 items-center justify-center opacity-50">
         <MinusIcon className="size-4 shrink-0" />

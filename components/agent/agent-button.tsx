@@ -22,14 +22,14 @@ export function AgentButton() {
       <button
         ref={triggerRef}
         aria-expanded={open}
-        className="flex cursor-pointer items-center gap-1.5 px-2 py-1"
+        className="flex cursor-pointer items-center justify-center text-white transition-colors hover:text-white/80"
         onClick={() => {
           setMounted(true);
           setOpen((previous) => !previous);
         }}
         type="button"
       >
-        <MessageCircle className="size-4 text-primary" />
+        <MessageCircle className="size-5" />
         <span className="sr-only">Open Shop Agent</span>
       </button>
       {mounted && <AgentPanel onOpenChange={setOpen} open={open} triggerRef={triggerRef} />}
