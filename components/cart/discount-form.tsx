@@ -69,6 +69,7 @@ export function DiscountForm({ cart }: DiscountFormProps) {
         <Button
           {...register("discount-apply")}
           type="submit"
+          className="bg-black text-white hover:bg-black/80 disabled:opacity-100"
           disabled={isPending || code.trim() === ""}
         >
           {isPending ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : "Apply"}

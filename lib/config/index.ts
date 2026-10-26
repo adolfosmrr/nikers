@@ -40,7 +40,7 @@ export const shopConfig = {
       isEnabled: true,
     },
     buyWithShop: {
-      isEnabled: true,
+      isEnabled: false,
     },
     complementaryProducts: {
       isEnabled: true,

@@ -59,6 +59,8 @@ export interface ProductCard {
   availableForSale: boolean;
   compareAtPrice?: Money;
   defaultVariantSelectedOptions?: SelectedOption[];
+  // Variante por defecto (primera disponible): la usa el botón + del Hero para agregar al carrito.
+  defaultVariantId?: string;
   featuredImage: Image | null;
   wallpaper?: { url: string; altText?: string | null };
   handle: string;

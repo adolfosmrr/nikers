@@ -153,7 +153,7 @@ function ProductInfoArea({
       ) : null}
 
       {/* "!" = important: gana incluso a colores que vengan en el HTML de Shopify (strong, span, etc.) */}
-      <ProductInfoDescription className="scrollbar-white -mt-10 max-h-[250px] overflow-y-auto pr-3 [&_*]:text-white!" descriptionHtml={descriptionHtml} />
+      <ProductInfoDescription className="scrollbar-white max-h-[250px] overflow-y-auto pr-3 [&_*]:text-white!" descriptionHtml={descriptionHtml} />
     </div>
   );
 }

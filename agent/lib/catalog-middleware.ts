@@ -1,5 +1,19 @@
 import type { wrapLanguageModel } from "ai";
 
+// Resumen corto de la descripción en texto plano: lo justo para que el modelo sepa para qué
+// sirve cada zapatilla (running, básquet, uso diario...) sin llenarle el contexto de HTML.
+function summarizeDescription(description: unknown): string | null {
+  const html =
+    typeof description === "string"
+      ? description
+      : description && typeof description === "object" && "html" in description && typeof description.html === "string"
+        ? description.html
+        : "";
+  const text = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  if (!text) return null;
+  return text.length > 400 ? `${text.slice(0, 400)}…` : text;
+}
+
 function isCatalogSearch(input: unknown): boolean {
   return (
     !!input &&
@@ -61,10 +75,13 @@ export const catalogMiddleware = {
                       return product;
                     return {
                       categories: product.categories ?? [],
+                      description: summarizeDescription(product.description),
                       handle: product.handle ?? null,
                       id: product.id ?? null,
                       options: product.options ?? [],
                       price_range: product.price_range ?? null,
+                      product_type: product.product_type ?? null,
+                      tags: product.tags ?? [],
                       title: product.title ?? null,
                     };
                   }),

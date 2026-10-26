@@ -2,7 +2,6 @@
 
 import type { CartLine as HydrogenCartLine } from "@shopify/hydrogen";
 import { MinusIcon, PlusIcon, Trash2Icon } from "lucide-react";
-import Image from "next/image";
 
 import { ImagePlaceholder } from "@/components/ui/image-placeholder";
 import { Link } from "@/components/ui/link";
@@ -76,60 +75,68 @@ function CartLineItem({ item }: CartLineItemProps) {
   const title = merchandise?.product.title || "Cart item";
   const href = merchandise?.product.handle ? `/products/${merchandise.product.handle}` : undefined;
   const image = merchandise?.image;
-  const imageContent = image?.url ? (
-    <Image
-      src={image.url}
-      alt={image.altText || title}
-      fill
-      className="object-cover"
-      sizes="100vw"
-    />
-  ) : (
-    <ImagePlaceholder className="size-full" />
+  const wallpaperRef = merchandise?.product.wallpaper?.reference;
+  const wallpaper = wallpaperRef && "image" in wallpaperRef ? wallpaperRef.image?.url : undefined;
+  // Igual que las cards del Hero: wallpaper + overlay de fondo y la zapatilla cortada por el borde
+  const imageContent = (
+    <>
+      {wallpaper && <img alt="" className="absolute inset-0 h-full w-full object-cover" src={wallpaper} />}
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px]" />
+      {image?.url ? (
+        <img
+          alt={image.altText || title}
+          className="absolute inset-y-0 left-[15%] my-auto w-[140%] max-w-none object-contain"
+          src={image.url}
+        />
+      ) : (
+        <ImagePlaceholder className="relative size-full" />
+      )}
+    </>
   );
   const price = (amount: number) => formatPrice({ amount: String(amount), currencyCode });
 
   return (
-    <li className="flex gap-2.5" aria-busy={isPending || undefined} aria-label={title}>
+    <li className="flex gap-3 rounded-2xl bg-black p-3 text-white" aria-busy={isPending || undefined} aria-label={title}>
       {href ? (
         <Link
           href={href}
-          className="relative size-18 shrink-0 cursor-pointer self-start overflow-hidden transition-opacity hover:opacity-80"
+          className="relative size-24 shrink-0 cursor-pointer self-start overflow-hidden rounded-[calc(var(--radius-2xl)---spacing(3))] bg-neutral-800 transition-opacity hover:opacity-80"
         >
           {imageContent}
         </Link>
       ) : (
-        <div className="relative size-18 shrink-0 self-start overflow-hidden">{imageContent}</div>
+        <div className="relative size-24 shrink-0 self-start overflow-hidden rounded-[calc(var(--radius-2xl)---spacing(3))] bg-neutral-800">{imageContent}</div>
       )}
-      <div className="grid min-h-18 min-w-0 flex-1 gap-2.5 pt-0.5">
+      <div className="grid min-h-24 min-w-0 flex-1 gap-2.5 pt-0.5">
         <div className="grid gap-2.5">
           <div className="grid gap-1">
             {href ? (
               <Link href={href} className="cursor-pointer transition-opacity hover:opacity-70">
-                <h3 className="line-clamp-1 text-sm font-medium text-foreground">{title}</h3>
+                <h3 className="line-clamp-1 font-mono text-sm font-bold text-white">{title}</h3>
               </Link>
             ) : (
-              <h3 className="line-clamp-1 text-sm font-medium text-foreground">{title}</h3>
+              <h3 className="line-clamp-1 font-mono text-sm font-bold text-white">{title}</h3>
             )}
-            {merchandise?.selectedOptions?.length ? (
-              <p className="text-xs text-muted-foreground">
+            {/* "Default Title" es lo que Shopify pone cuando el producto no tiene variantes: lo ocultamos */}
+            {merchandise?.selectedOptions?.some((option) => option.value !== "Default Title") ? (
+              <p className="text-xs text-white/60">
                 {merchandise.selectedOptions.map((option) => option.value).join(" / ")}
               </p>
             ) : null}
             {item.sellingPlanAllocation ? (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-white/60">
                 {item.sellingPlanAllocation.sellingPlan.name || "Subscription"}
               </p>
             ) : null}
           </div>
           {components.length ? (
             <div className="grid gap-1">
-              <p className="text-xs font-medium text-muted-foreground">Bundle Includes</p>
+              <p className="text-xs font-medium text-white/60">Bundle Includes</p>
               <ul className="grid gap-0.5">
                 {components.map((component) => (
                   <li
                     key={component.id}
-                    className="flex items-center gap-1.5 text-xs text-muted-foreground"
+                    className="flex items-center gap-1.5 text-xs text-white/60"
                   >
                     <span className="truncate">
                       {component.merchandise?.product.title || "Bundle item"}
@@ -150,7 +157,7 @@ function CartLineItem({ item }: CartLineItemProps) {
             <>
               <div
                 aria-label="Item quantity"
-                className="grid h-6 grid-cols-[1.75rem_1.5rem_1.75rem] rounded-full ring-1 ring-border ring-inset"
+                className="grid h-6 grid-cols-[1.75rem_1.5rem_1.75rem] rounded-full ring-1 ring-white/30 ring-inset"
                 role="group"
               >
                 <button
@@ -184,7 +191,7 @@ function CartLineItem({ item }: CartLineItemProps) {
               <button
                 {...register("remove")}
                 type="submit"
-                className="flex cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex cursor-pointer items-center justify-center text-white/60 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                 disabled={isOptimistic || !canRemove}
                 aria-label="Remove item"
               >
@@ -197,13 +204,13 @@ function CartLineItem({ item }: CartLineItemProps) {
       </div>
       <div className="grid gap-0.5 self-start py-0.5 text-right font-mono text-sm tabular-nums tracking-tight">
         <span
-          className="font-medium text-foreground data-[pending=true]:text-muted-foreground"
+          className="font-medium text-white data-[pending=true]:text-white/60"
           data-pending={isCostPending || !currencyCode}
         >
           {isCostPending || !currencyCode ? "Updating…" : price(finalUnitPrice)}
         </span>
         {!isCostPending && currencyCode && originalUnitPrice > finalUnitPrice ? (
-          <span className="text-xs text-muted-foreground line-through">
+          <span className="text-xs text-white/60 line-through">
             {price(originalUnitPrice)}
           </span>
         ) : null}

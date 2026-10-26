@@ -39,6 +39,10 @@ export function Hero({ products }: HeroProps) {
   const flipState = useRef<FlipState | null>(null)
   const animating = useRef(false)
   const exitTimeline = useRef<gsap.core.Timeline | null>(null)
+  // Si hay un href acá, al terminar el Flip navegamos a ese producto.
+  const pendingHref = useRef<string | null>(null)
+  // Mientras sale hacia un producto, escondemos todo lo que tiene data-exit (título, precio, cards...).
+  const [exiting, setExiting] = useState(false)
 
   // Next.js guarda la página anterior "escondida" para poder volver rápido, con el DOM tal cual quedó
   // (o sea, con los elementos invisibles por la animación de salida). React corre este cleanup
@@ -48,6 +52,8 @@ export function Hero({ products }: HeroProps) {
       exitTimeline.current?.revert()
       exitTimeline.current = null
       animating.current = false
+      pendingHref.current = null
+      setExiting(false)
     }
   }, [])
 
@@ -82,6 +88,56 @@ export function Hero({ products }: HeroProps) {
     // Empezamos a pedir la página ya, mientras corre la animación de salida.
     router.prefetch(href)
     const ease = "power2.in"
+
+    // Flecha de una card: primero se va todo lo demás y después esa card crece hasta ser
+    // el destacado (como Next), la zapatilla activa sale a la izquierda y recién ahí navegamos.
+    const card = link.closest<HTMLElement>("[data-hero-card]")
+    if (card) {
+      const cards = Array.from(root.querySelectorAll<HTMLElement>("[data-hero-card]"))
+      const step = cards.indexOf(card) + 1
+      pendingHref.current = href
+
+      // La zapatilla activa empieza a irse ya: dejamos una copia en su lugar que se desliza
+      // a la izquierda y escondemos la original (React la va a reusar para el producto nuevo).
+      const shoe = root.querySelector<HTMLImageElement>("[data-featured-shoe]")
+      let clone: HTMLImageElement | null = null
+      if (shoe) {
+        const rect = shoe.getBoundingClientRect()
+        const rootRect = root.getBoundingClientRect()
+        clone = shoe.cloneNode(true) as HTMLImageElement
+        for (const attr of ["data-featured", "data-featured-shoe", "data-flip-id"]) clone.removeAttribute(attr)
+        Object.assign(clone.style, {
+          position: "absolute",
+          top: `${rect.top - rootRect.top}px`,
+          left: `${rect.left - rootRect.left}px`,
+          width: `${rect.width}px`,
+          height: `${rect.height}px`,
+          pointerEvents: "none",
+          zIndex: "20",
+        })
+        root.appendChild(clone)
+        gsap.set(shoe, { visibility: "hidden" })
+        gsap.to(clone, {
+          x: -window.innerWidth,
+          duration: 1.2,
+          ease: "power3.inOut",
+          onComplete: () => clone?.remove(),
+        })
+      }
+
+      exitTimeline.current = gsap
+        .timeline({
+          onComplete: () => {
+            jump(step)
+          },
+        })
+        .to(root.querySelectorAll('[data-exit="up"]'), { y: -40, autoAlpha: 0, duration: 0.5, ease }, 0)
+        .to(root.querySelectorAll('[data-exit="down"]'), { y: 40, autoAlpha: 0, duration: 0.5, ease }, 0)
+        .to(cards.filter((c) => c !== card), { x: 80, autoAlpha: 0, duration: 0.5, stagger: 0.06, ease }, 0)
+        .to(card.querySelectorAll("[data-card-chrome]"), { autoAlpha: 0, duration: 0.3 }, 0)
+      return
+    }
+
     exitTimeline.current = gsap
       .timeline({ onComplete: () => router.push(href) })
       .to(root.querySelectorAll('[data-exit="up"]'), { y: -40, autoAlpha: 0, duration: 0.5, ease }, 0)
@@ -102,6 +158,10 @@ export function Hero({ products }: HeroProps) {
 
     const tl = gsap.timeline({
       onComplete: () => {
+        if (pendingHref.current) {
+          router.push(pendingHref.current)
+          return
+        }
         animating.current = false
         setBackdrop(null)
         setLeaving(null)
@@ -122,6 +182,9 @@ export function Hero({ products }: HeroProps) {
     }
 
     const featuredShoe = root.querySelector<HTMLElement>("[data-featured-shoe]")
+    // Si la escondimos al tocar la flecha de una card, la mostramos recién acá:
+    // React ya le puso la imagen nueva y todavía no se pintó, así que no se ve la vieja.
+    if (featuredShoe) gsap.set(featuredShoe, { clearProps: "visibility" })
 
     if (direction === 1) {
       // NEXT: la primera card crece hasta ser el destacado.
@@ -230,11 +293,21 @@ export function Hero({ products }: HeroProps) {
     swap(step)
   }
 
-  const swap = (step: 1 | -1) => {
+  // Salta directo a la card número `step` (1 = la primera) con la animación de Next.
+  const jump = (step: number) => {
+    const root = rootRef.current
+    if (!root) return
+    root.dataset.direction = "1"
+    setExiting(true)
+    swap(step, false)
+  }
+
+  // step > 0: avanza `step` productos (Next o salto a una card). step -1: Prev.
+  const swap = (step: number, withLeaving = true) => {
     const root = rootRef.current
     if (!root) return
 
-    if (step === 1) {
+    if (step > 0) {
       // 1) Foto de dónde está cada elemento con data-flip-id ahora mismo.
       //    El fondo y la zapatilla del destacado actual no entran: esos salen de otra forma.
       flipState.current = Flip.getState(root.querySelectorAll("[data-flip-id]:not([data-featured])"), {
@@ -244,12 +317,12 @@ export function Hero({ products }: HeroProps) {
 
       // Guardamos dónde está la zapatilla actual para dejar una copia que se deslice.
       const shoe = root.querySelector<HTMLImageElement>("[data-featured-shoe]")
-      if (shoe) {
+      if (shoe && withLeaving) {
         const shoeRect = shoe.getBoundingClientRect()
         const rootRect = root.getBoundingClientRect()
         setLeaving({
           alt: shoe.alt,
-          direction: step,
+          direction: 1,
           rect: {
             height: shoeRect.height,
             left: shoeRect.left - rootRect.left,
@@ -275,7 +348,7 @@ export function Hero({ products }: HeroProps) {
   }
 
   return (
-    <section ref={rootRef} onClickCapture={handleLinkClick} className="relative isolate h-dvh w-full overflow-hidden bg-black">
+    <section ref={rootRef} onClickCapture={handleLinkClick} className="relative isolate h-dvh w-full overflow-hidden bg-black data-exiting:[&_[data-exit]]:invisible" data-exiting={exiting || undefined}>
       {/* Wallpaper anterior quieto atrás (con su overlay) mientras el nuevo se expande */}
       {backdrop && (
         <div className="absolute inset-0 -z-20">

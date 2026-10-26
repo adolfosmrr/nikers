@@ -11,6 +11,22 @@ export const CART_FRAGMENT = gql(/* GraphQL */ `
             name
           }
         }
+        # Wallpaper del producto, para el fondo de la card en el carrito
+        merchandise {
+          ... on ProductVariant {
+            product {
+              wallpaper: metafield(namespace: "custom", key: "product_wallpaper") {
+                reference {
+                  ... on MediaImage {
+                    image {
+                      url
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }

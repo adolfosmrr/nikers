@@ -172,7 +172,7 @@ function AgentCartSummary({ warnings = [] }: AgentCartSummaryProps) {
     );
   if (cart.lines.nodes.length === 0) return <MissingData>Your cart is empty</MissingData>;
   return (
-    <div ref={ref} className="my-2 grid gap-5 rounded-lg border p-2.5">
+    <div ref={ref} className="my-2 grid gap-5 rounded-[calc(var(--radius-2xl)+--spacing(2.5))] border p-2.5">
       {warnings.length > 0 && (
         <div className="grid gap-1">
           {warnings.map((warning) => (

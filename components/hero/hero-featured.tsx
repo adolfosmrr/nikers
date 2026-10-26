@@ -1,4 +1,9 @@
+"use client"
+
 import Link from "next/link"
+
+import { useCartDrawer } from "@/components/cart/context"
+import { addToCart } from "@/lib/cart/add-to-cart"
 
 import type { ProductCard } from "@/lib/product/types"
 
@@ -9,6 +14,16 @@ interface HeroFeaturedProps {
 }
 
 export function HeroFeatured({ product }: HeroFeaturedProps) {
+  const { openOverlay } = useCartDrawer()
+  const variantId = product.defaultVariantId
+
+  // Agrega la variante por defecto (1 unidad) y abre el carrito para que se vea.
+  const handleAdd = () => {
+    if (!variantId) return
+    addToCart(variantId)
+    openOverlay()
+  }
+
   return (
     <div className="relative flex h-full w-full flex-col items-center justify-center px-10 text-white">
       {/* Altura fija de 2 líneas: si el nombre ocupa 1 o 2, lo de abajo no se mueve */}
@@ -39,7 +54,13 @@ export function HeroFeatured({ product }: HeroFeaturedProps) {
         </p>
 
         <div className="flex items-center gap-3" data-exit="down">
-          <button aria-label="Add to cart" className="size-9 rounded-full bg-white text-black" type="button">
+          <button
+            aria-label="Add to cart"
+            className="size-9 cursor-pointer rounded-full bg-white text-black disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={!variantId || !product.availableForSale}
+            onClick={handleAdd}
+            type="button"
+          >
             +
           </button>
           <Link className="rounded-full bg-white px-4 py-1 text-black" data-hero-link href={`/products/${product.handle}`}>

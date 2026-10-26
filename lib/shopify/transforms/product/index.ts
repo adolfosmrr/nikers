@@ -184,6 +184,7 @@ function transformProductCard(
     availableForSale: product.availableForSale,
     isGiftCard: product.isGiftCard,
     defaultVariantSelectedOptions: cardVariant?.selectedOptions ?? [],
+    defaultVariantId: defaultVariant?.id,
   };
 }
 

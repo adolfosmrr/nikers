@@ -38,7 +38,13 @@ export function CartOverlay({ description, title }: CartOverlayProps) {
 
   return (
     <Sheet open={isOverlayOpen} onOpenChange={setOverlayOpen}>
-      <SheetContent closeButton={false} overlay={false} side="right" className="gap-0 p-0">
+      <SheetContent
+        closeButton={false}
+        side="right"
+        className="gap-0 p-0"
+        // Fondo del resto de la ventana: negro al 70% con un leve desenfoque
+        overlayClassName="bg-black/70 backdrop-blur-xs"
+      >
         <div className="flex h-16 shrink-0 items-center justify-between gap-2 px-2.5">
           <div className="flex items-center gap-1.5">
             <SheetTitle className="font-normal text-xl leading-4">{title}</SheetTitle>
@@ -46,9 +52,9 @@ export function CartOverlay({ description, title }: CartOverlayProps) {
           </div>
           <SheetClose
             aria-label="Close cart"
-            className="flex cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+            className="flex size-8 cursor-pointer items-center justify-center rounded-full bg-black text-white transition-colors hover:bg-black/80"
           >
-            <XIcon className="size-5" />
+            <XIcon className="size-4" />
           </SheetClose>
         </div>
         <SheetDescription className="sr-only">{description}</SheetDescription>

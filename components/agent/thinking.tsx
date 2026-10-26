@@ -19,7 +19,7 @@ export function AgentThinking({ active, tool }: { active: boolean; tool?: string
     "update-discount-code": "Updating your discount codes…",
   };
   return (
-    <p className="shimmer w-fit text-white text-sm" role="status">
+    <p className="shimmer w-fit text-black text-sm" role="status">
       {(tool ? toolLabels[tool] : undefined) ?? "Thinking…"}
     </p>
   );

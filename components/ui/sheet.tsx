@@ -40,18 +40,20 @@ function SheetContent({
   closeButton = true,
   keepMounted = false,
   overlay = true,
+  overlayClassName,
   side = "right",
   ...props
 }: SheetPrimitive.Popup.Props & {
   closeButton?: boolean;
   keepMounted?: boolean;
   overlay?: boolean;
+  overlayClassName?: string;
   side?: "top" | "right" | "bottom" | "left";
 }) {
   return (
     <SheetPortal keepMounted={keepMounted}>
       {/* Base UI's own modal backdrop has no z-index, so z-indexed page chrome such as the sticky header stays clickable; without a dimmed overlay, this transparent one takes the click-away. */}
-      <SheetOverlay data-dim={overlay} />
+      <SheetOverlay className={overlayClassName} data-dim={overlay} />
       <SheetPrimitive.Popup
         data-slot="sheet-content"
         data-side={side}
