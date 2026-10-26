@@ -19,6 +19,10 @@ import { ChatMessage } from "./chat-message";
 import { AgentComposer } from "./composer";
 import { AgentThinking } from "./thinking";
 
+function isRateLimitError(cause: unknown): cause is Error & { code: "rate_limited" } {
+  return cause instanceof Error && "code" in cause && cause.code === "rate_limited";
+}
+
 const CANCEL_TIMEOUT_MS = 10_000;
 const SESSION_PREP_TTL_MS = 60_000;
 
@@ -51,6 +55,7 @@ export function AgentPanel({ onOpenChange, open, triggerRef }: AgentPanelProps) 
   } | null>(null);
   const cartPending = useAgentCartPending();
   const [controlError, setControlError] = useState<string | null>(null);
+  const [rateLimitMessage, setRateLimitMessage] = useState<string | null>(null);
   const [pendingSend, setPendingSend] = useState(false);
   const sessionPrep = useRef<{ at: number; promise: Promise<void> } | null>(null);
   const prepareSession = useCallback(() => {
@@ -68,6 +73,7 @@ export function AgentPanel({ onOpenChange, open, triggerRef }: AgentPanelProps) 
     initialSession: stored.session,
     onError(cause) {
       setPendingSend(false);
+      if (isRateLimitError(cause)) setRateLimitMessage(cause.message);
       clearAttempt.current?.reject(cause);
     },
     onFinish(finished) {
@@ -192,8 +198,12 @@ export function AgentPanel({ onOpenChange, open, triggerRef }: AgentPanelProps) 
     setPendingSend(true);
     setAgentCartStatus("pending");
     setControlError(null);
-    void agent.send(text).catch(() => {
+    void agent.send(text).catch((cause: unknown) => {
       setPendingSend(false);
+      if (isRateLimitError(cause)) {
+        setRateLimitMessage(cause.message);
+        return;
+      }
       setControlError("Could not send your message. Try again, or clear an expired conversation.");
     });
     setInput("");
@@ -351,7 +361,11 @@ export function AgentPanel({ onOpenChange, open, triggerRef }: AgentPanelProps) 
           }
           value={input}
         />
-        {(error || controlError) && (
+        {rateLimitMessage ? (
+          <p role="alert" className="mx-2.5 mb-2 rounded-md bg-red-600 px-3 py-2 text-white text-xs">
+            {rateLimitMessage}
+          </p>
+        ) : (error || controlError) && (
           <p role="alert" className="px-2.5 pb-2 text-red-500 text-xs">
             {controlError ??
               "The assistant is unavailable. Try again, or clear an expired conversation."}

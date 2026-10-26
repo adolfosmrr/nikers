@@ -5,6 +5,7 @@ import { type AuthFn, ForbiddenError, localDev, none, vercelOidc } from "eve/cha
 import { eveChannel } from "eve/channels/eve";
 
 import { shopConfig } from "../../lib/config";
+import { isRateLimited } from "../lib/rate-limit";
 
 const anonymous = none<Request>();
 const browserAuth: AuthFn<Request> = async (request) => {
@@ -21,6 +22,11 @@ const browserAuth: AuthFn<Request> = async (request) => {
     ).isBot
   )
     throw new ForbiddenError();
+  if (await isRateLimited(request))
+    throw new ForbiddenError({
+      code: "rate_limited",
+      message: "Llegaste al límite de 10 mensajes por hora. Probá de nuevo más tarde.",
+    });
   return anonymous(request);
 };
 

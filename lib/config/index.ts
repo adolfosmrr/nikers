@@ -28,7 +28,7 @@ export const shopConfig = {
   },
   botid: {
     checkLevel: "basic",
-    isEnabled: false,
+    isEnabled: true,
   },
   localization: {
     country: "US",
