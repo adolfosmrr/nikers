@@ -50,8 +50,10 @@ export function BackTransition() {
         .to(black, { opacity: 0, duration: 0.5, ease: "power2.out" }, "+=0.1")
     }
 
-    window.addEventListener("popstate", onPopState)
-    return () => window.removeEventListener("popstate", onPopState)
+    // capture: true para correr ANTES que el listener de Next.js. En producción Next renderiza
+    // la página nueva dentro de su propio popstate, así que si llegamos después la "foto" ya es la nueva.
+    window.addEventListener("popstate", onPopState, { capture: true })
+    return () => window.removeEventListener("popstate", onPopState, { capture: true })
   }, [])
 
   // B) Click en un link con data-fade-link

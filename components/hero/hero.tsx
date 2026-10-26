@@ -126,15 +126,13 @@ export function Hero({ products }: HeroProps) {
       }
 
       exitTimeline.current = gsap
-        .timeline({
-          onComplete: () => {
-            jump(step)
-          },
-        })
+        .timeline()
         .to(root.querySelectorAll('[data-exit="up"]'), { y: -40, autoAlpha: 0, duration: 0.5, ease }, 0)
         .to(root.querySelectorAll('[data-exit="down"]'), { y: 40, autoAlpha: 0, duration: 0.5, ease }, 0)
         .to(cards.filter((c) => c !== card), { x: 80, autoAlpha: 0, duration: 0.5, stagger: 0.06, ease }, 0)
         .to(card.querySelectorAll("[data-card-chrome]"), { autoAlpha: 0, duration: 0.3 }, 0)
+        // La expansión del fondo y el reposicionamiento arrancan 150ms antes de que termine la salida.
+        .call(() => jump(step), [], 0.35)
       return
     }
 
