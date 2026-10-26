@@ -22,7 +22,6 @@ function ProductInfoOptions({
   className,
   ...props
 }: ProductInfoOptionsProps) {
-  // Shopify emits a synthetic Title/Default Title option for products with no variant axes — hide it.
   const isShopifyDefaultOption = (opt: OptionGroupState) =>
     opt.name === "Title" && opt.values.length === 1 && opt.values[0]?.name === "Default Title";
   const isSingleValueOption = (opt: OptionGroupState) => opt.values.length === 1;

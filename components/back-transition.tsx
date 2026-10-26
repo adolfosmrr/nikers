@@ -18,20 +18,11 @@ function createOverlay() {
   return { black, overlay }
 }
 
-// Fundido a negro entre páginas en dos casos:
-// A) Atrás/adelante del navegador (popstate): el cambio es inmediato, así que dejamos encima
-//    una "foto" (clon del DOM) de la página que se va, fundimos a negro y la sacamos.
-// B) Links con data-fade-link (ej: el logo): fundimos a negro, navegamos, y cuando cambia
-//    la ruta (usePathname) desvanecemos el negro.
 export function BackTransition() {
   const router = useRouter()
   const pathname = usePathname()
   const pendingFade = useRef<{ black: HTMLElement; overlay: HTMLElement } | null>(null)
 
-  // A) Atrás / adelante
-  // Usamos la Navigation API ("navigate"), que avisa ANTES de que cambie la página.
-  // "popstate" llega tarde en producción: Next ya pintó la página nueva y la "foto" salía mal.
-  // Si el navegador no tiene Navigation API, caemos a popstate.
   useEffect(() => {
     const fadeFromSnapshot = () => {
       const main = document.getElementById("main-content")
@@ -66,15 +57,13 @@ export function BackTransition() {
     return () => window.removeEventListener("popstate", fadeFromSnapshot, { capture: true })
   }, [])
 
-  // B) Click en un link con data-fade-link
   useEffect(() => {
     const onClick = (event: MouseEvent) => {
-      // Cmd/Ctrl/Shift-click o botón del medio: que abra pestaña nueva como siempre.
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
       const link = (event.target as HTMLElement).closest<HTMLAnchorElement>("a[data-fade-link]")
       if (!link) return
       const href = link.getAttribute("href") ?? "/"
-      if (href === window.location.pathname) return // ya estamos ahí
+      if (href === window.location.pathname) return
 
       event.preventDefault()
       event.stopPropagation()
@@ -85,12 +74,10 @@ export function BackTransition() {
       gsap.to(fade.black, { opacity: 1, duration: 0.4, ease: "power2.in", onComplete: () => router.push(href) })
     }
 
-    // "capture" para adelantarnos al <Link> de Next.js.
     document.addEventListener("click", onClick, true)
     return () => document.removeEventListener("click", onClick, true)
   }, [router])
 
-  // Cuando la ruta ya cambió, desvanecemos el negro del caso B.
   useEffect(() => {
     const fade = pendingFade.current
     if (!fade) return

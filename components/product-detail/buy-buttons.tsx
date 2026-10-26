@@ -52,7 +52,6 @@ export function BuyButtons({
   }
   const requiresBundleConfiguration = selectedVariant.requiresBundleConfiguration;
   const isOutOfStock = !selectedVariant.availableForSale;
-  // Keep href while buying: removing it during the click cancels the anchor's navigation.
   const buyNowUrl = getShopPayButtonUrl({
     disabled: isSelectionUnresolved || isOutOfStock || requiresBundleConfiguration || pending,
     variants: [{ id: selectedVariant.id, quantity }],

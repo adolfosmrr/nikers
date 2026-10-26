@@ -16,7 +16,6 @@ interface ShopifyScriptsTrackerProps {
 
 const subscribeNoop = () => () => {};
 
-// Trackers must mount after hydration so the analytics bus script has run.
 function AnalyticsReady({ children }: { children: ReactNode }) {
   const isHydrated = useSyncExternalStore(
     subscribeNoop,
@@ -36,7 +35,6 @@ export function ShopifyScriptsTracker({ i18n, shop }: ShopifyScriptsTrackerProps
 
   return (
     <>
-      {/* Shopify's hosted privacy banner still reads the Liquid token fallback in headless stores. */}
       <script id="shopify-features" type="application/json">
         {JSON.stringify({
           accessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN,

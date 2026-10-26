@@ -74,7 +74,6 @@ export function buildOpenGraph({
       }
   >;
 }): Metadata["openGraph"] {
-  // Omit type so product pages can emit og:type=product through raw meta tags.
   return {
     ...(type ? { type } : {}),
     title,

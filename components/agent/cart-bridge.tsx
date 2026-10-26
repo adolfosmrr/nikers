@@ -28,7 +28,6 @@ export function AgentCartBridge({
   const previousNetworkErrorAt = useRef(0);
   const cartStatus = useAgentCartStatus();
   const busy = status === "submitted" || status === "streaming" || status === "resuming";
-  // Interrupted or errored cart writes may have landed, so any cart tool call forces a refresh at settle.
   useLayoutEffect(() => {
     let confirmed = false;
     for (const message of messages)
@@ -62,7 +61,6 @@ export function AgentCartBridge({
       return;
     }
     if (!observedLoading.current) return;
-    // Hydrogen retains network errors from unrelated mutations across refreshes.
     if (
       cart.errors.network.length &&
       cart.errors.networkUpdatedAt > previousNetworkErrorAt.current

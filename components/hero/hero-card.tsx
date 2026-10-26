@@ -14,7 +14,6 @@ export function HeroCard({ product }: HeroCardProps) {
       data-exit="right"
       data-hero-card
     >
-      {/* Fondo de la card + su overlay en una sola caja: viajan juntos cuando el fondo se expande o se achica */}
       <div
         className="absolute inset-0 overflow-hidden rounded-2xl"
         data-card-bg
@@ -27,15 +26,13 @@ export function HeroCard({ product }: HeroCardProps) {
             src={product.wallpaper.url}
           />
         )}
-        <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px]" />
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
       </div>
 
       <div className="relative flex items-center gap-2 p-3 text-white" data-card-chrome>
         <h2 className="truncate font-mono text-sm font-bold">{product.title}</h2>
       </div>
 
-      {/* Zapatilla más ancha que la card: el overflow-hidden la corta en el borde.
-          Se centra con inset-y-0 + my-auto (no con translate) para que Flip no la desacomode */}
       {product.featuredImage && (
         <img
           alt={product.featuredImage.altText || product.title}

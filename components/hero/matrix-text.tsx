@@ -10,12 +10,8 @@ interface MatrixTextProps {
   text: string
 }
 
-// Muestra un texto y, cada vez que cambia, lo "descifra" con letras al azar
-// que se van fijando de izquierda a derecha (efecto matrix).
 export function MatrixText({ text }: MatrixTextProps) {
-  // Lo que se ve en pantalla en cada cuadro de la animación.
   const [display, setDisplay] = useState(text)
-  // Último texto animado: evita animar al montar (y el doble efecto de StrictMode).
   const previousText = useRef(text)
 
   useEffect(() => {
@@ -31,7 +27,6 @@ export function MatrixText({ text }: MatrixTextProps) {
       setDisplay(
         letters
           .map((letter, index) => {
-            // Espacios y símbolos quedan igual; las letras ya "resueltas" también.
             if (!/[A-Za-z0-9]/.test(letter)) return letter
             if (progress >= (index + 1) / letters.length) return letter
             return GLYPHS[Math.floor(Math.random() * GLYPHS.length)]

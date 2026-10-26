@@ -6,7 +6,6 @@ import { isCustomerLoggedIn } from "@/lib/auth/server";
 export async function NavAccount() {
   const loggedIn = await isCustomerLoggedIn();
   if (!loggedIn) {
-    // Sign-in must be a full document navigation; the proxy auth route issues an OAuth redirect and must never be prefetched.
     return (
       // eslint-disable-next-line next/no-html-link-for-pages
       <a

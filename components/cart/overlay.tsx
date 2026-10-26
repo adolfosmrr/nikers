@@ -42,7 +42,6 @@ export function CartOverlay({ description, title }: CartOverlayProps) {
         closeButton={false}
         side="right"
         className="gap-0 p-0"
-        // Fondo del resto de la ventana: negro al 70% con un leve desenfoque
         overlayClassName="bg-black/70 backdrop-blur-xs"
       >
         <div className="flex h-16 shrink-0 items-center justify-between gap-2 px-2.5">

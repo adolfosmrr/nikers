@@ -11,7 +11,6 @@ import {
 } from "@/lib/shopify/operations/products/server";
 import type { SearchIndexProductsParams } from "@/lib/shopify/operations/products/types";
 
-// Only valid inside a cache directive scope.
 export function tagProducts(products: Array<{ id: string }>): void {
   for (const product of products) {
     const numericId = getNumericShopifyId(product.id);
@@ -32,7 +31,6 @@ export async function getProduct(params: {
   return product;
 }
 
-// Cursor-paginated browse reads stay uncached in lib/collections/server.ts; this serves fixed grids only.
 export async function getSearchIndexProducts(
   params: SearchIndexProductsParams,
 ): Promise<ProductPage> {

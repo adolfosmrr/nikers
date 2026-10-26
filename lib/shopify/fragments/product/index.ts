@@ -4,8 +4,6 @@ import { BUNDLE_RELATIONSHIPS_FRAGMENT } from "@/lib/shopify/fragments/bundle";
 import { TAXONOMY_CATEGORY_FRAGMENT } from "@/lib/shopify/fragments/taxonomy";
 import { PRODUCT_VARIANT_FRAGMENT } from "@/lib/shopify/fragments/variant";
 
-// Money and Image selections are inlined so diamond-shaped fragment composition never emits one leaf fragment twice.
-
 export const PRODUCT_FRAGMENT = gql(
   `#graphql
   fragment ProductFields on Product {

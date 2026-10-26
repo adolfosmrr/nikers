@@ -51,7 +51,6 @@ export function Nav() {
         </Link>
 
         <div className="flex items-center gap-5 ml-auto">
-          {/* Botón del chat con el agente de IA, a la izquierda de la búsqueda */}
           {shopConfig.agent.isEnabled && <AgentButton />}
           {shopConfig.search.isEnabled && (
             <PredictiveSearchProvider

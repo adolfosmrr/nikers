@@ -17,7 +17,6 @@ export function HeroFeatured({ product }: HeroFeaturedProps) {
   const { openOverlay } = useCartDrawer()
   const variantId = product.defaultVariantId
 
-  // Agrega la variante por defecto (1 unidad) y abre el carrito para que se vea.
   const handleAdd = () => {
     if (!variantId) return
     addToCart(variantId)
@@ -26,13 +25,10 @@ export function HeroFeatured({ product }: HeroFeaturedProps) {
 
   return (
     <div className="relative flex h-full w-full flex-col items-center justify-center px-10 text-white">
-      {/* Altura fija de 2 líneas: si el nombre ocupa 1 o 2, lo de abajo no se mueve */}
       <div className="flex h-[2lh] items-end font-mono text-[48px] leading-tight" data-exit="up">
         <h1 className="line-clamp-2 text-balance text-center"><MatrixText text={product.title} /></h1>
       </div>
 
-      {/* Caja de tamaño fijo: durante Flip la imagen pasa a "absolute" y sin esta caja
-          la columna se achica y el título, el precio y los botones saltan */}
       <div className="relative my-8 h-[40vh] w-full max-w-xl">
         {product.featuredImage && (
           <img
@@ -46,9 +42,7 @@ export function HeroFeatured({ product }: HeroFeaturedProps) {
         )}
       </div>
 
-      {/* Misma altura (h-9) y misma distancia al borde (bottom-8) que la fila de Prev/Next */}
       <div className="absolute right-10 bottom-8 left-10 flex h-9 items-center justify-between">
-        {/* La descripción todavía no viene en ProductCard, por ahora va el precio */}
         <p className="max-w-xs text-2xl" data-exit="down">
           <MatrixText text={`${product.price.amount} ${product.price.currencyCode}`} />
         </p>

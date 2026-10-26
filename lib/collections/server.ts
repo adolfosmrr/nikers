@@ -23,7 +23,6 @@ import {
   fetchSearchIndexProducts,
 } from "@/lib/shopify/operations/products/server";
 
-// /collections/all is a local virtual collection with no Storefront API equivalent.
 export const ALL_PRODUCTS_HANDLE = "all";
 
 function tagCollections(collections: Array<{ handle: string }>): void {
@@ -64,7 +63,6 @@ export async function getCollectionsListing(
 
   const collections = await fetchCollectionsListing(params);
   tagCollections(collections);
-  // Thumbnails fall back to product imagery, so product updates must refresh the listing.
   tagProducts(
     collections.flatMap((collection) =>
       collection.thumbnailProductId ? [{ id: collection.thumbnailProductId }] : [],
@@ -93,7 +91,6 @@ function recordToSearchParams(
   return params;
 }
 
-// The default view, unfiltered and in its default sort: "minutes" bounds Search & Discovery edits, which send no webhook, and Load more's product dedupe absorbs cursor drift.
 export async function getCollectionResults(params: {
   handle: string;
   locale?: CommerceLocale;
@@ -132,7 +129,6 @@ export async function getAllProductsResults(
   return { dataSearch: "", facets, pageInfo, products, source: { type: "search" }, total };
 }
 
-// Filtered and sorted views stay live; a cache entry per combination would rarely be reused.
 export async function fetchCollectionResults({
   handle,
   statePromise,

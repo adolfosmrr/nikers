@@ -3,7 +3,6 @@ import type { GraphQLFormattedError } from "@shopify/hydrogen";
 import { shopifyLogger } from "@/lib/shopify/logging/server";
 import type { StorefrontResponse } from "@/lib/shopify/types";
 
-// Shopify reports throttling and internal failures as GraphQL errors on HTTP 200 responses.
 const TRANSIENT_ERROR_CODES = new Set(["INTERNAL_SERVER_ERROR", "THROTTLED"]);
 
 function isTransientError(error: GraphQLFormattedError): boolean {
@@ -17,7 +16,6 @@ export function assertStorefrontOk<T>(
   const transientError = response.errors?.find(isTransientError);
   if (response.errors?.length && (!response.data || transientError)) {
     const reportedError = transientError ?? response.errors[0];
-    // StorefrontApiError represents transport failures, not returned GraphQL errors.
     throw new Error(`Shopify ${operation} failed: ${reportedError.message}`, {
       cause: { errors: response.errors, operation },
     });

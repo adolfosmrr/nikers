@@ -89,7 +89,6 @@ export function DiscountForm({ cart }: DiscountFormProps) {
             const isInvalid = !discount.applicable && !isCodePending;
             return (
               <li key={discount.code}>
-                {/* Hydrogen reads FormData from the native submit event, before a React onClick could populate a shared input. */}
                 <form
                   {...formProps({
                     beforeSubmit: () => {

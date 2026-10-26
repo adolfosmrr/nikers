@@ -30,11 +30,9 @@ export function recordRecentlyViewedProduct(product: RecentlyViewedProduct): voi
       JSON.stringify([product, ...previous].slice(0, RECENTLY_VIEWED_LIMIT)),
     );
   } catch {
-    /* The overlay still works without browser storage. */
   }
 }
 
-// Re-read on each open: the overlay outlives navigation, so a product page may have recorded a view since last time.
 export function useRecentlyViewedProducts(open: boolean): RecentlyViewedProduct[] {
   const [state, setState] = useState({ open: false, products: [] as RecentlyViewedProduct[] });
   if (state.open !== open) {

@@ -35,7 +35,6 @@ const buttonVariants = cva(
 
 interface ButtonProps
   extends useRender.ComponentProps<"button">, VariantProps<typeof buttonVariants> {
-  /** @deprecated Pass `render={<El />}` instead. Kept for back-compat with Radix-era call sites. */
   asChild?: boolean;
 }
 

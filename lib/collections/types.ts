@@ -12,7 +12,6 @@ export interface BrowseState {
   sort?: string;
 }
 
-// Collection products and the search index paginate with different Storefront cursors.
 export type BrowseSource =
   | { collection: string; type: "collection" }
   | { query?: string; type: "search" };

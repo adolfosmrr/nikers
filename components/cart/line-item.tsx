@@ -27,7 +27,6 @@ export function CartLineItems({ lines }: CartLineItemsProps) {
   );
 }
 
-// Shopify replaces a new line's `optimistic:` ID on confirmation, so rows key by the identity Hydrogen matches lines on.
 function getLineRowKeys(lines: CartLine[]) {
   const keys = lines.map((line) =>
     JSON.stringify([
@@ -77,7 +76,6 @@ function CartLineItem({ item }: CartLineItemProps) {
   const image = merchandise?.image;
   const wallpaperRef = merchandise?.product.wallpaper?.reference;
   const wallpaper = wallpaperRef && "image" in wallpaperRef ? wallpaperRef.image?.url : undefined;
-  // Igual que las cards del Hero: wallpaper + overlay de fondo y la zapatilla cortada por el borde
   const imageContent = (
     <>
       {wallpaper && <img alt="" className="absolute inset-0 h-full w-full object-cover" src={wallpaper} />}
@@ -117,7 +115,6 @@ function CartLineItem({ item }: CartLineItemProps) {
             ) : (
               <h3 className="line-clamp-1 font-mono text-sm font-bold text-white">{title}</h3>
             )}
-            {/* "Default Title" es lo que Shopify pone cuando el producto no tiene variantes: lo ocultamos */}
             {merchandise?.selectedOptions?.some((option) => option.value !== "Default Title") ? (
               <p className="text-xs text-white/60">
                 {merchandise.selectedOptions.map((option) => option.value).join(" / ")}

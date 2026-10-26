@@ -20,8 +20,6 @@ export function describeCollection(collection: Collection): string {
   );
 }
 
-// Storefront `search` only sorts by RELEVANCE and PRICE.
-// Shopify `sort_by` values; "manual" means the collection's own order.
 export const SORT_VALUES = [
   "manual",
   "best-selling",
@@ -61,7 +59,6 @@ export function resolveBrowseParams(search: string | URLSearchParams): BrowseSta
 const COLLECTION_PATH = /^\/collections\/([^/]+)\/?$/;
 const REFINED_COLLECTION_PATH = /^\/collections\/[^/]+\/refine\/?$/;
 
-// The default view never reads search params so its products stay in the static shell and prefetches; filtered and sorted views render from the request-time `refine` route.
 export function getRefinedCollectionPath(pathname: string, search: string): string | null {
   const handle = COLLECTION_PATH.exec(pathname)?.[1];
   return handle && resolveBrowseParams(search).dataSearch ? `/collections/${handle}/refine` : null;

@@ -30,6 +30,5 @@ export function writeStoredChat(value: StoredChat) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
   } catch {
-    /* Chat remains usable without browser storage. */
   }
 }

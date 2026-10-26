@@ -41,7 +41,6 @@ export interface AgentPanelProps {
 export function AgentPanel({ onOpenChange, open, triggerRef }: AgentPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const [stored] = useState(readStoredChat);
-  // Idle stored sessions replay on first open; an interrupted turn resumes at once so its cart writes reconcile.
   const [resumePending, setResumePending] = useState(Boolean(stored.session && !stored.turnActive));
   const [input, setInput] = useState(stored.input);
   const snapshot = useRef(stored);
@@ -54,7 +53,6 @@ export function AgentPanel({ onOpenChange, open, triggerRef }: AgentPanelProps) 
   const [controlError, setControlError] = useState<string | null>(null);
   const [pendingSend, setPendingSend] = useState(false);
   const sessionPrep = useRef<{ at: number; promise: Promise<void> } | null>(null);
-  // Warm the cart cookie ahead of send so the turn dispatches without a round trip.
   const prepareSession = useCallback(() => {
     const now = Date.now();
     const current = sessionPrep.current;
@@ -93,7 +91,6 @@ export function AgentPanel({ onOpenChange, open, triggerRef }: AgentPanelProps) 
   });
   const { data, error, status } = agent;
   const { messages } = data;
-  // A session-limit prompt holds its turn open, so the stream stays "streaming" while it waits.
   const hasReachedLimit = openConversationInputs(data).some(
     (pending) => pending.request.kind === "session-limit",
   );
@@ -126,7 +123,6 @@ export function AgentPanel({ onOpenChange, open, triggerRef }: AgentPanelProps) 
   const markUserScroll = useCallback(() => {
     userScrollRef.current = true;
   }, []);
-  // Programmatic scrolls also fire scroll events; only user input may unpin from the bottom.
   const handleScroll = useCallback(() => {
     const element = scrollRef.current;
     if (!element) return;

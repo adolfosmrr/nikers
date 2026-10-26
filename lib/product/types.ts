@@ -23,7 +23,6 @@ export type ProductFormVariant = Pick<
   requiresBundleConfiguration: boolean;
 };
 
-// The store only forwards `swatch` per value, so the variant thumbnail rides along with it.
 export interface ProductFormSwatch extends OptionValueSwatch {
   variantImage?: string;
 }
@@ -59,7 +58,6 @@ export interface ProductCard {
   availableForSale: boolean;
   compareAtPrice?: Money;
   defaultVariantSelectedOptions?: SelectedOption[];
-  // Variante por defecto (primera disponible): la usa el botón + del Hero para agregar al carrito.
   defaultVariantId?: string;
   featuredImage: Image | null;
   wallpaper?: { url: string; altText?: string | null };
@@ -94,7 +92,6 @@ export interface ProductPage {
 }
 
 export interface ProductDetails extends ProductCard {
-  /** Sparse variant cache around the default variant; feeds Hydrogen's product form store. */
   adjacentVariants: ProductVariant[];
   allVariantsInStock: boolean;
   category?: Category | null;
@@ -118,7 +115,6 @@ export interface ProductDetails extends ProductCard {
   };
   seo: SEO;
   updatedAt: string;
-  /** Only populated by fetchProductWithVariants for Eve; the PDP and Markdown omit it. */
   variants?: ProductVariant[];
   variantsCount: number;
   videos: Video[];
@@ -132,13 +128,11 @@ export interface ProductVariant {
   id: string;
   image: Image | null;
   price: Money;
-  /** Differs from the page's handle for combined-listing option values. */
   productHandle: string;
   productTitle: string;
   requiresComponents: boolean;
   requiresSellingPlan: boolean;
   selectedOptions: SelectedOption[];
-  // Only the first 100 allocations are loaded.
   sellingPlanAllocations: SellingPlanAllocation[];
   title: string;
 }

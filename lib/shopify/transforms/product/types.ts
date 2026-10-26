@@ -16,13 +16,11 @@ export type ShopifyBundleComponentVariant = ResultOf<typeof BUNDLE_COMPONENT_VAR
 export type ShopifyImage = NonNullable<ShopifyBundleComponentVariant["image"]>;
 type ShopifyBaseVariant = ResultOf<typeof PRODUCT_VARIANT_FRAGMENT>;
 type ShopifyPurchasableVariant = ResultOf<typeof PURCHASABLE_PRODUCT_VARIANT_FRAGMENT>;
-// Bundle fields are only selected when `shopConfig.pdp.bundles.isEnabled`.
 export type ShopifyVariant = ShopifyBaseVariant & Partial<ShopifyPurchasableVariant>;
 export type ShopifyCategory = ResultOf<typeof TAXONOMY_CATEGORY_FRAGMENT>;
 
 type ShopifyBaseProduct = ResultOf<typeof PRODUCT_FRAGMENT>;
 type ShopifyProductWithVariants = ResultOf<typeof PRODUCT_WITH_VARIANTS_FRAGMENT>;
-// Variants and bundle relationships are optional selections layered on ProductFields.
 export type ShopifyProduct = ShopifyBaseProduct &
   Partial<Pick<ShopifyProductWithVariants, "variants">> & {
     selectedOrFirstAvailableVariant?: ShopifyVariant | null;

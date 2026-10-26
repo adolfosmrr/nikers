@@ -21,7 +21,6 @@ interface HeroProps {
 
 type FlipState = ReturnType<typeof Flip.getState>
 
-// Copia de la zapatilla que sale del destacado: misma posición y tamaño que tenía.
 interface LeavingShoe {
   alt: string
   direction: 1 | -1
@@ -30,9 +29,7 @@ interface LeavingShoe {
 }
 
 export function Hero({ products }: HeroProps) {
-  // Único estado del hero: qué producto está destacado.
   const [index, setIndex] = useState(0)
-  // Wallpaper anterior: queda quieto atrás mientras el nuevo se expande encima.
   const [backdrop, setBackdrop] = useState<string | null>(null)
   const [leaving, setLeaving] = useState<LeavingShoe | null>(null)
 
@@ -40,14 +37,9 @@ export function Hero({ products }: HeroProps) {
   const flipState = useRef<FlipState | null>(null)
   const animating = useRef(false)
   const exitTimeline = useRef<gsap.core.Timeline | null>(null)
-  // Si hay un href acá, al terminar el Flip navegamos a ese producto.
   const pendingHref = useRef<string | null>(null)
-  // Mientras sale hacia un producto, escondemos todo lo que tiene data-exit (título, precio, cards...).
   const [exiting, setExiting] = useState(false)
 
-  // Next.js guarda la página anterior "escondida" para poder volver rápido, con el DOM tal cual quedó
-  // (o sea, con los elementos invisibles por la animación de salida). React corre este cleanup
-  // cuando la página se esconde, así que ahí deshacemos la salida para que al volver esté todo.
   useEffect(() => {
     return () => {
       exitTimeline.current?.revert()
@@ -61,14 +53,10 @@ export function Hero({ products }: HeroProps) {
   const total = products.length
   const router = useRouter()
 
-  // Transición de página: antes de navegar al producto, el Hero "sale".
-  // Título hacia arriba; precio, botones y Prev/Next hacia abajo; cards a la derecha.
-  // La zapatilla y el fondo quedan quietos: en la página del producto están en el mismo lugar.
   const handleLinkClick = (event: MouseEvent<HTMLElement>) => {
     const link = (event.target as HTMLElement).closest<HTMLAnchorElement>("a[data-hero-link]")
     const root = rootRef.current
     if (!link || !root) return
-    // Cmd/Ctrl-click (abrir en otra pestaña) funciona normal.
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return
     event.preventDefault()
     if (animating.current) return
@@ -76,7 +64,6 @@ export function Hero({ products }: HeroProps) {
 
     const href = link.getAttribute("href") ?? "/"
 
-    // Le avisamos a la página del producto qué fondo y zapatilla mostrar mientras carga.
     const target = products.find((p) => href === `/products/${p.handle}`)
     if (target) {
       setPendingProduct({
@@ -86,22 +73,15 @@ export function Hero({ products }: HeroProps) {
         wallpaperUrl: target.wallpaper?.url,
       })
     }
-    // Empezamos a pedir la página ya, mientras corre la animación de salida.
-    // "full" trae también los datos dinámicos (título, precio, descripción), no solo el esqueleto,
-    // así cuando navegamos la columna derecha ya está lista.
     router.prefetch(href, { kind: PrefetchKind.FULL })
     const ease = "power2.in"
 
-    // Flecha de una card: primero se va todo lo demás y después esa card crece hasta ser
-    // el destacado (como Next), la zapatilla activa sale a la izquierda y recién ahí navegamos.
     const card = link.closest<HTMLElement>("[data-hero-card]")
     if (card) {
       const cards = Array.from(root.querySelectorAll<HTMLElement>("[data-hero-card]"))
       const step = cards.indexOf(card) + 1
       pendingHref.current = href
 
-      // La zapatilla activa empieza a irse ya: dejamos una copia en su lugar que se desliza
-      // a la izquierda y escondemos la original (React la va a reusar para el producto nuevo).
       const shoe = root.querySelector<HTMLImageElement>("[data-featured-shoe]")
       let clone: HTMLImageElement | null = null
       if (shoe) {
@@ -128,9 +108,6 @@ export function Hero({ products }: HeroProps) {
         })
       }
 
-      // Salida más corta (0.35s en vez de 0.5s) para que la expansión arranque antes.
-      // Esperamos a que TERMINE: si Flip saca la "foto" con las otras cards a mitad de camino,
-      // las anima desde ahí y se ven pasando por detrás de la card que crece.
       exitTimeline.current = gsap
         .timeline({ onComplete: () => jump(step) })
         .to(root.querySelectorAll('[data-exit="up"]'), { y: -40, autoAlpha: 0, duration: 0.35, ease }, 0)
@@ -147,7 +124,6 @@ export function Hero({ products }: HeroProps) {
       .to(root.querySelectorAll('[data-exit="right"]'), { x: 80, autoAlpha: 0, duration: 0.5, stagger: 0.06, ease }, 0)
   }
 
-  // 3) Después de que React movió todo, Flip anima desde la foto vieja a la nueva.
   useLayoutEffect(() => {
     const root = rootRef.current
     const state = flipState.current
@@ -161,7 +137,6 @@ export function Hero({ products }: HeroProps) {
     const tl = gsap.timeline({
       onComplete: () => {
         if (pendingHref.current) {
-          // Lo vaciamos antes de navegar: si no, un Next/Prev posterior podría "recordar" este href.
           const href = pendingHref.current
           pendingHref.current = null
           router.push(href)
@@ -173,7 +148,6 @@ export function Hero({ products }: HeroProps) {
       },
     })
 
-    // Recorta una zapatilla con el rectángulo (y el redondeado) de un fondo que se está moviendo.
     const clip = (shoeEl: HTMLElement | null, bgEl: HTMLElement | null) => {
       if (!shoeEl || !bgEl) return
       const bg = bgEl.getBoundingClientRect()
@@ -187,12 +161,9 @@ export function Hero({ products }: HeroProps) {
     }
 
     const featuredShoe = root.querySelector<HTMLElement>("[data-featured-shoe]")
-    // Si la escondimos al tocar la flecha de una card, la mostramos recién acá:
-    // React ya le puso la imagen nueva y todavía no se pintó, así que no se ve la vieja.
     if (featuredShoe) gsap.set(featuredShoe, { clearProps: "visibility" })
 
     if (direction === 1) {
-      // NEXT: la primera card crece hasta ser el destacado.
       const featuredBg = root.querySelector<HTMLElement>("[data-featured-bg]")
       const clipNew = () => clip(featuredShoe, featuredBg)
 
@@ -213,25 +184,20 @@ export function Hero({ products }: HeroProps) {
         }),
       )
 
-      // La zapatilla vieja se desliza fuera hacia la izquierda.
       const leavingShoe = root.querySelector("[data-leaving-shoe]")
       if (leavingShoe) tl.to(leavingShoe, { x: -window.innerWidth, duration, ease }, 0)
     } else {
-      // PREV: el destacado actual se achica y vuelve a ser la primera card.
       const firstCard = root.querySelector<HTMLElement>("[data-hero-card]")
       const cardBg = firstCard?.querySelector<HTMLElement>("[data-card-bg]") ?? null
       const cardShoe = firstCard?.querySelector<HTMLElement>("[data-card-shoe]") ?? null
       const chrome = firstCard?.querySelectorAll("[data-card-chrome]") ?? []
       const clipBack = () => clip(cardShoe, cardBg)
 
-      // Mientras se achica, la card no recorta: el fondo arranca a pantalla completa.
       if (firstCard) gsap.set(firstCard, { overflow: "visible" })
-      // Overlay, título y flecha de la card aparecen recién al final.
       gsap.set(chrome, { opacity: 0 })
 
       tl.add(
         Flip.from(state, {
-          // El nuevo destacado no se "flipea": entra deslizándose.
           targets: root.querySelectorAll("[data-flip-id]:not([data-featured])"),
           duration,
           ease,
@@ -248,10 +214,8 @@ export function Hero({ products }: HeroProps) {
       )
       tl.to(chrome, { opacity: 1, duration: 0.4, ease: "power1.out" }, 0)
 
-      // La zapatilla anterior entra deslizándose desde la izquierda.
       if (featuredShoe) tl.fromTo(featuredShoe, { x: -window.innerWidth }, { x: 0, duration, ease, clearProps: "x" }, 0)
     }
-
 
     return () => {
       tl.kill()
@@ -261,7 +225,6 @@ export function Hero({ products }: HeroProps) {
   if (total === 0) return null
 
   const current = products[index]
-  // Las cards muestran los productos que vienen después del actual.
   const nextProducts = Array.from({ length: total - 1 }, (_, i) => products[(index + 1 + i) % total])
 
   const go = (step: 1 | -1) => {
@@ -270,9 +233,6 @@ export function Hero({ products }: HeroProps) {
     const root = rootRef.current
     root.dataset.direction = String(step)
 
-    // 0) La card que se va (la primera en Next, la última en Prev) desaparece del DOM
-    //    al cambiar el índice. Dejamos una copia de su título y su flecha en el mismo
-    //    lugar y la desvanecemos al mismo tiempo que arranca la zapatilla.
     const cards = root.querySelectorAll<HTMLElement>("[data-hero-card]")
     const outgoingCard = step === 1 ? cards[0] : cards[cards.length - 1]
     const rootRect = root.getBoundingClientRect()
@@ -298,7 +258,6 @@ export function Hero({ products }: HeroProps) {
     swap(step)
   }
 
-  // Salta directo a la card número `step` (1 = la primera) con la animación de Next.
   const jump = (step: number) => {
     const root = rootRef.current
     if (!root) return
@@ -307,20 +266,15 @@ export function Hero({ products }: HeroProps) {
     swap(step, false)
   }
 
-  // step > 0: avanza `step` productos (Next o salto a una card). step -1: Prev.
   const swap = (step: number, withLeaving = true) => {
     const root = rootRef.current
     if (!root) return
 
     if (step > 0) {
-      // 1) Foto de dónde está cada elemento con data-flip-id ahora mismo.
-      //    El fondo y la zapatilla del destacado actual no entran: esos salen de otra forma.
       flipState.current = Flip.getState(root.querySelectorAll("[data-flip-id]:not([data-featured])"), {
-        // Flip solo puede animar el redondeado si lo guarda también en la "foto" inicial.
         props: "borderRadius",
       })
 
-      // Guardamos dónde está la zapatilla actual para dejar una copia que se deslice.
       const shoe = root.querySelector<HTMLImageElement>("[data-featured-shoe]")
       if (shoe && withLeaving) {
         const shoeRect = shoe.getBoundingClientRect()
@@ -339,8 +293,6 @@ export function Hero({ products }: HeroProps) {
       }
       setBackdrop(current.wallpaper?.url ?? null)
     } else {
-      // En Prev sí guardamos el destacado actual (va a volver a la card),
-      // pero no la última card: ese producto pasa a ser el destacado.
       const lastCard = root.querySelector("[data-hero-card]:last-of-type")
       const targets = Array.from(root.querySelectorAll<HTMLElement>("[data-flip-id]")).filter(
         (el) => !lastCard || (el !== lastCard && !lastCard.contains(el)),
@@ -348,21 +300,18 @@ export function Hero({ products }: HeroProps) {
       flipState.current = Flip.getState(targets, { props: "borderRadius" })
     }
 
-    // 2) Cambiamos el índice y React re-ordena el DOM.
     setIndex((i) => (i + step + total) % total)
   }
 
   return (
     <section ref={rootRef} onClickCapture={handleLinkClick} className="relative isolate h-dvh w-full overflow-hidden bg-black data-exiting:[&_[data-exit]]:invisible" data-exiting={exiting || undefined}>
-      {/* Wallpaper anterior quieto atrás (con su overlay) mientras el nuevo se expande */}
       {backdrop && (
         <div className="absolute inset-0 -z-20">
           <img alt="" className="h-full w-full object-cover" src={backdrop} />
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px]" />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
         </div>
       )}
 
-      {/* Fondo a pantalla completa + overlay: mismo data-flip-id que el fondo de su card */}
       <div
         className="absolute inset-0 -z-10 overflow-hidden rounded-none"
         data-featured
@@ -376,7 +325,7 @@ export function Hero({ products }: HeroProps) {
             src={current.wallpaper.url}
           />
         )}
-        <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px]" />
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
       </div>
 
       <div className="flex h-full items-center gap-8 pt-16">

@@ -52,7 +52,6 @@ function SheetContent({
 }) {
   return (
     <SheetPortal keepMounted={keepMounted}>
-      {/* Base UI's own modal backdrop has no z-index, so z-indexed page chrome such as the sticky header stays clickable; without a dimmed overlay, this transparent one takes the click-away. */}
       <SheetOverlay className={overlayClassName} data-dim={overlay} />
       <SheetPrimitive.Popup
         data-slot="sheet-content"

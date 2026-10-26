@@ -36,7 +36,6 @@ const getRequestContext = cache(() => {
     country: shopConfig.localization.country,
     language: shopConfig.localization.language,
   };
-  // An empty request ID suppresses Hydrogen's synchronous UUID fallback.
   return createShopifyRequestContext({
     i18n,
     request: { headers: new Headers({ "x-request-id": "" }) },
@@ -68,7 +67,6 @@ async function getCartData(cartId: string | undefined): Promise<CartSeedData> {
   return data;
 }
 
-// Carts are never put in the Next.js data cache — layout and page share only this per-request promise.
 export const seedCartData = cache(async (): Promise<CartSeedData> => {
   return getCartData(await getCartIdFromCookie());
 });
@@ -84,7 +82,6 @@ export async function getCartById(cartId: string): Promise<Cart | undefined> {
   return data.cart ?? undefined;
 }
 
-// Streaming tools need a cart cookie before adding the first line; Hydrogen's POST rejects empty lines.
 export async function createEmptyCart(
   requestContext: ShopifyRequestContext,
   sessionManager?: WritableCustomerSessionManager,

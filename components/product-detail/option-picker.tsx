@@ -32,7 +32,6 @@ export function OptionPicker({
                 : "font-normal border-border text-muted-foreground hover:border-foreground hover:text-foreground",
           );
 
-          // Invisible medium-weight twin reserves the bold width so pills don't shift on selection.
           const label = (
             <>
               <span className="col-start-1 row-start-1">{value.name}</span>

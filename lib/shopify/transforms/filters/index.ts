@@ -56,7 +56,6 @@ function getParamKeyFromShopifyId(filterId: string): string {
   return filterId.toLowerCase();
 }
 
-// Hydrogen's ProductFilter folds the taxonomy namespace into `key`; Shopify's filter input keeps them apart.
 function normalizeShopifyFilterInput(inputJson: string): string {
   try {
     const input = JSON.parse(inputJson) as {
@@ -201,7 +200,6 @@ export function transformShopifyFilters(
     }))
     .filter((filter) => filter.values.length > 0);
 
-  // Keep an active singleton facet so the shopper can still clear it.
   filters = filters.filter(
     (filter) =>
       filter.values.length > 1 ||

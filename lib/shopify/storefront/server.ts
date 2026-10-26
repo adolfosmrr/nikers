@@ -29,7 +29,6 @@ function operationName(body: RequestInit["body"]): string {
   }
 }
 
-// Hydrogen lacks operation URL annotations and debug timing, so custom fetch preserves them.
 const customFetchApi: typeof fetch = async (input, init) => {
   const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
   const operation = operationName(init?.body);
@@ -49,7 +48,6 @@ const customFetchApi: typeof fetch = async (input, init) => {
   }
 };
 
-// Hydrogen overrides locale variables from client config, requiring a client per locale pair.
 export function createRequestStorefrontClient(
   requestContext: ReturnType<typeof createShopifyRequestContext>,
 ): StorefrontClient {
@@ -74,7 +72,6 @@ function getClient(
   return createRequestStorefrontClient(
     createShopifyRequestContext({
       i18n: { country, language },
-      // An empty request ID suppresses Hydrogen's synchronous UUID fallback.
       request: new Request(`https://${SHOPIFY_STORE_DOMAIN}`, {
         headers: { "x-request-id": "" },
       }),

@@ -76,7 +76,6 @@ export function ProductDetailSection({
         wallpaperAlt={product.wallpaper?.altText || product.title}
         wallpaperUrl={product.wallpaper?.url}
       >
-        {/* Derecha: título, precio, opciones, botón de compra y descripción */}
         <Reveal className="flex max-h-full w-1/2 flex-col justify-center overflow-y-auto pb-10 pr-10">
           <ProductInfoArea product={product} variantPromise={variantPromise} />
         </Reveal>
@@ -99,7 +98,6 @@ function ProductInfoArea({
   const allInStock = product.defaultVariant?.availableForSale ?? product.availableForSale;
   const hasOptions = options.some((option) => option.values.length > 1);
   return (
-    // Las variables del tema se pisan solo acá: texto blanco y botón blanco con texto negro.
     <div className="grid max-w-md gap-5 [--border:rgb(255_255_255/0.3)] [--foreground:#ffffff] [--muted-foreground:#d4d4d4] [--primary-foreground:#000000] [--primary:#ffffff]">
       <div
         className="grid data-[uniform-price=true]:gap-10"
@@ -152,7 +150,6 @@ function ProductInfoArea({
         <ComplementaryProducts handle={handle} limit={4} title="Pairs Well With" />
       ) : null}
 
-      {/* "!" = important: gana incluso a colores que vengan en el HTML de Shopify (strong, span, etc.) */}
       <ProductInfoDescription className="scrollbar-white max-h-[250px] overflow-y-auto pr-3 [&_*]:text-white!" descriptionHtml={descriptionHtml} />
     </div>
   );
@@ -183,7 +180,6 @@ async function ResolvedProductInfo({
   return <ProductInfoContent product={product} selectedVariant={await variantPromise} />;
 }
 
-// The store is seeded from the URL-resolved variant so server HTML and client state agree on first paint.
 function ProductInfoContent({
   priceSlot,
   product,
@@ -251,7 +247,6 @@ function ProductInfoFallback({
   );
 }
 
-// Bundle relationships are product-level, so keep them in the static shell.
 function BundleRelationships({ variant }: { variant: ProductVariant | undefined }) {
   if (!variant) return null;
   if (variant.components.length === 0 && variant.bundleParents.length === 0) return null;
@@ -264,7 +259,6 @@ function BundleRelationships({ variant }: { variant: ProductVariant | undefined 
 }
 
 function GiftCardPurchaseFormFallback() {
-  // Match the resolved form's geometry to avoid layout shift.
   return (
     <div className="grid gap-5">
       <div className="grid gap-2.5">
@@ -358,7 +352,6 @@ export function ProductDetailSkeleton() {
   return (
     <div aria-busy="true" className="grid gap-10 lg:grid-cols-10 lg:items-start lg:gap-5">
       <div className="lg:col-span-6">
-        {/* Media blocks stay static; a pulsing skeleton in the LCP slot flashes harder than an empty image canvas. */}
         <div className="grid gap-5 lg:hidden">
           <div className="-mx-5 aspect-square w-[calc(100%+2.5rem)] bg-accent" />
           <div aria-hidden="true" className="h-1.5" />

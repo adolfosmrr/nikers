@@ -10,8 +10,6 @@ interface RevealProps {
   className?: string
 }
 
-// Entrada de la info del producto: cada bloque sube y aparece, uno detrás del otro.
-// Arranca "invisible" para que no se vea un parpadeo antes de que corra GSAP.
 export function Reveal({ children, className }: RevealProps) {
   const ref = useRef<HTMLDivElement>(null)
 

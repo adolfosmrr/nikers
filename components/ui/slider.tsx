@@ -40,7 +40,6 @@ function Slider({ className, children, ...props }: ComponentProps<"section">) {
     setCanScrollRight(container.scrollLeft + container.clientWidth < container.scrollWidth - 1);
   }, []);
 
-  // Content may mount after the section, so measure from the scroller's own callback ref.
   const registerContainer = useCallback(
     (node: HTMLDivElement | null) => {
       cleanupRef.current?.();

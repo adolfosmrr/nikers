@@ -104,7 +104,6 @@ async function ProductPageContent({
   });
   if (!product) notFound();
 
-  // Keep selection separate from the variant query so the static shell stays coherent and the picker never waits on Shopify.
   const selectedOptionsPromise: Promise<SelectedOptions> = searchParams.then(
     (resolvedSearchParams) => ({
       ...defaultSelectedOptions(product),
@@ -118,7 +117,6 @@ async function ProductPageContent({
       ) {
         return product.defaultVariant;
       }
-      // Uncached: the selected variant's price and stock are read live per request, and caching per option combination multiplies entries by variant count.
       return fetchProductVariant({
         handle,
         selectedOptions: toSelectedOptionList({

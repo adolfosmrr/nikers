@@ -1,7 +1,5 @@
 import type { wrapLanguageModel } from "ai";
 
-// Resumen corto de la descripción en texto plano: lo justo para que el modelo sepa para qué
-// sirve cada zapatilla (running, básquet, uso diario...) sin llenarle el contexto de HTML.
 function summarizeDescription(description: unknown): string | null {
   const html =
     typeof description === "string"
@@ -25,7 +23,6 @@ function isCatalogSearch(input: unknown): boolean {
 
 export const catalogMiddleware = {
   async transformParams({ params }) {
-    // Model history records connection calls as eve__tool, so only the paired call input names the catalog tool.
     const catalogSearchCallIds = new Set(
       params.prompt.flatMap((message) =>
         message.role === "assistant"

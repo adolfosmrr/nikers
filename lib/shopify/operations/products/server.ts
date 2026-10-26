@@ -55,7 +55,6 @@ type StorefrontProductFilter = NonNullable<
   NonNullable<StorefrontVariables<typeof COLLECTION_PRODUCTS_QUERY>["filters"]>[number]
 >;
 
-// Hydrogen's ProductFilter folds the taxonomy namespace into `key`; the Storefront schema wants them apart.
 function toStorefrontFilters(filters: ProductFilter[]): StorefrontProductFilter[] | undefined {
   if (filters.length === 0) return undefined;
   return filters.map((filter) => {
@@ -149,7 +148,6 @@ const GET_PRODUCT_VARIANT_WITH_BUNDLES_QUERY = gql(
   [PURCHASABLE_PRODUCT_VARIANT_FRAGMENT],
 );
 
-// Empty selections intentionally resolve Shopify's first available variant.
 export async function fetchProductVariant({
   handle,
   locale = shopConfig.localization,
@@ -194,7 +192,6 @@ const GET_PRODUCT_VARIANT_BY_SELECTED_OPTIONS_QUERY = gql(
   [PURCHASABLE_PRODUCT_VARIANT_FRAGMENT],
 );
 
-// Exact match: unlike fetchProductVariant, a combination the product does not have returns no variant.
 export async function fetchProductVariantBySelectedOptions({
   handle,
   locale = shopConfig.localization,
@@ -287,7 +284,6 @@ export async function fetchProductsByIds({
     .map(transformShopifyProductCard);
 }
 
-// Storefront search sorts by RELEVANCE or PRICE only.
 function toSearchSort(sortBy: string | undefined): { reverse: boolean; sortKey: SearchSortKeys } {
   const parsed = sortBy ? parseSortByValue(sortBy) : undefined;
   return parsed?.sortKey === "PRICE"
@@ -334,12 +330,10 @@ const PRODUCTS_SEARCH_QUERY = gql(
   [FILTERABLE_PRODUCT_CARD_FRAGMENT],
 );
 
-// `search` takes a free-text term, not a filter DSL; structured narrowing goes through `productFilters`.
 function buildSearchQuery(query: string | undefined): string {
   return query?.trim() || "*";
 }
 
-// `products` drops variant/metafield filters, so /search must use the `search` field.
 export async function fetchSearchIndexProducts(
   params: SearchIndexProductsParams,
 ): Promise<ProductPage> {
@@ -429,7 +423,6 @@ export async function fetchSearchFacets(params: SearchFacetsParams): Promise<Sea
   };
 }
 
-// MANUAL is only valid for manual collections, so the merchant default covers both kinds.
 function toCollectionSort(sortBy: string | undefined): {
   reverse: boolean;
   sortKey: ProductCollectionSortKeys;
@@ -560,7 +553,6 @@ const PRODUCT_OPTION_VALUES_QUERY = gql(`#graphql
   }
 `);
 
-// ProductCardFields only carries the default variant's options, so other colors/sizes need this read.
 export async function fetchProductOptionValues(ids: string[]): Promise<ProductOptionValues> {
   const byHandle: ProductOptionValues = new Map();
   if (ids.length === 0) return byHandle;

@@ -286,7 +286,6 @@ export async function requireCustomerSession(): Promise<void> {
   if (!(await isCustomerLoggedIn())) redirectToCustomerLogin(await getRequestedPath("/account"));
 }
 
-// Server Components cannot read the URL, so the proxy forwards the one-shot refresh marker as a request header.
 export function forwardCustomerRefreshAttempt(url: URL, requestHeaders: Headers): Headers {
   requestHeaders.delete(REFRESH_ATTEMPT_HEADER);
   if (url.searchParams.has(REFRESH_ATTEMPT_PARAM)) requestHeaders.set(REFRESH_ATTEMPT_HEADER, "1");
@@ -305,7 +304,6 @@ export async function requireCustomerAccessToken(returnTo = "/account"): Promise
   const accessToken = await getCustomerAccessToken();
   if (accessToken) return accessToken;
 
-  // Hydrogen returns to the page unchanged after a transient refresh failure, so a second refresh would loop.
   const refreshAttempted = (await headers()).has(REFRESH_ATTEMPT_HEADER);
   if (!refreshAttempted && (await isCustomerLoggedIn())) {
     redirect(`/account/refresh?return_to=${encodeURIComponent(withRefreshAttempt(returnTo))}`);

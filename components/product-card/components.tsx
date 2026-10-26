@@ -151,7 +151,6 @@ function ProductCardPrice({
   const priceNum = parseFloat(amount);
   const compareAtNum = compareAtAmount ? parseFloat(compareAtAmount) : undefined;
   const isRange = maxAmount != null && maxAmount !== amount;
-  // A range's per-variant discounts differ, so a single compare-at would be misleading.
   const discountPercent = isRange ? null : getDiscountPercent(priceNum, compareAtNum);
   return (
     <div data-slot="product-card-price" className={cn(className)}>

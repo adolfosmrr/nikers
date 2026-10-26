@@ -141,7 +141,6 @@ export function ShoppingResults({
       children.push(<AgentCartSummary key="cart" />);
     }
   }
-  // Only the latest turn renders the editable cart; older turns rely on the assistant's text.
   if (confirmation && !hasCart)
     children.push(<AgentCartSummary key="cart" warnings={confirmation.warnings} />);
 
@@ -203,7 +202,6 @@ function AgentProductCard({ product }: AgentProductCardProps) {
     );
   return (
     <SliderItem>
-      {/* Mismo estilo que las cards del Hero: wallpaper de fondo, zapatilla, título y precio en blanco */}
       <Link
         href={`/products/${product.handle}`}
         className="relative block aspect-[13/20] overflow-hidden rounded-2xl bg-neutral-800 text-white"

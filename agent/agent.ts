@@ -9,6 +9,5 @@ export default defineAgent({
     middleware: catalogMiddleware,
     model: gateway("openai/gpt-5-mini"),
   }),
-  // Eve cannot infer Gateway context limits through the model wrapper.
   modelContextWindowTokens: 400_000,
 });

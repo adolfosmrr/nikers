@@ -34,7 +34,6 @@ const geistMono = Geist_Mono({
 });
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
-  // Un-awaited: the promise streams to the client provider; never block the shell on it.
   const cartData = seedCartData();
   return (
     <html lang={shopConfig.localization.locale}>

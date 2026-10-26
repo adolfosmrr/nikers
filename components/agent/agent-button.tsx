@@ -9,7 +9,6 @@ export function AgentButton() {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  // Mount the drawer closed once the page is idle so the first open is a plain slide-in.
   useEffect(() => {
     const idle =
       window.requestIdleCallback ?? ((callback: () => void) => setTimeout(callback, 200));

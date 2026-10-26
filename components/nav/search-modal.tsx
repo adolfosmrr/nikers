@@ -66,7 +66,6 @@ function SearchDialogContent({ onClose, open }: { onClose: () => void; open: boo
     usePredictiveSearch();
   const recentlyViewed = useRecentlyViewedProducts(open);
   const hasQuery = query.trim().length > 0;
-  // An empty query falls back to recently viewed, so both states drive one keyboard list.
   const suggestions = hasQuery ? (results?.queries ?? []) : [];
   const products = hasQuery ? (results?.products ?? []) : recentlyViewed;
   useEffect(() => {

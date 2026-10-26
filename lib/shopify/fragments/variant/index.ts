@@ -2,8 +2,6 @@ import { gql } from "@shopify/hydrogen";
 
 import { BUNDLE_RELATIONSHIPS_FRAGMENT } from "@/lib/shopify/fragments/bundle";
 
-// Money and Image selections are inlined so diamond-shaped fragment composition never emits one leaf fragment twice.
-
 export const PRODUCT_VARIANT_FRAGMENT = gql(
   `#graphql
   fragment ProductVariantFields on ProductVariant {

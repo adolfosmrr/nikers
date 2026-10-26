@@ -42,7 +42,6 @@ function canUpgrade(anchor: HTMLAnchorElement): boolean {
     const current = new URL(window.location.href);
     const destination = new URL(anchor.href);
 
-    // The root ensureStatic keeps per-link prefetches static, so search params resolve only on navigation and a same-path upgrade adds nothing.
     return (
       (destination.protocol === "http:" || destination.protocol === "https:") &&
       destination.origin === current.origin &&
@@ -198,7 +197,6 @@ export function Link({
       }}
       onPointerDown={(event) => {
         onPointerDown?.(event);
-        // Navigation renders the cached shell instead of waiting on an in-flight per-link prefetch, so an upgrade after a press only duplicates the request.
         cancelPendingIntent();
         cancelSettleIntent();
       }}

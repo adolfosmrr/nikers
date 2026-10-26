@@ -16,7 +16,6 @@ import type {
   SelectedOptions,
 } from "./types";
 
-// URLs carry lowercased option names and values; canonicalize both against the product before Shopify sees them.
 export function parseSelectedOptions(
   options: ProductOption[],
   searchParams: Record<string, string | string[] | undefined>,
@@ -67,14 +66,12 @@ export function getProductPurchaseOptions(
   return { plans, selectedPlan };
 }
 
-// Customized bundle parents have no fixed components, so they cannot be added without a bundle builder.
 export function requiresBundleConfiguration(
   variant: Pick<ProductVariant, "components" | "requiresComponents">,
 ): boolean {
   return variant.requiresComponents && variant.components.length === 0;
 }
 
-// Only the bundle gating boolean crosses the client boundary.
 function toProductFormVariant(variant: ProductVariant): ProductFormVariant {
   return {
     availableForSale: variant.availableForSale,
@@ -91,7 +88,6 @@ function toProductFormVariant(variant: ProductVariant): ProductFormVariant {
   };
 }
 
-// The store seeds its selection from selectedOrFirstAvailableVariant, so the URL-resolved variant goes there.
 export function toProductFormInput(
   product: ProductDetails,
   selectedVariant: ProductVariant | undefined,
@@ -147,7 +143,6 @@ export function buildProductUrl(
   return searchParams.size > 0 ? `/products/${handle}?${searchParams}` : `/products/${handle}`;
 }
 
-// Inbound URLs may carry lowercased option names; strip them case-insensitively so they don't linger next to the new selection.
 function isOptionParam(key: string, selectedOptions: readonly SelectedOption[]): boolean {
   const lower = key.toLowerCase();
   return selectedOptions.some((option) => option.name.toLowerCase() === lower);
@@ -163,7 +158,6 @@ export function isColorOption(option: {
   );
 }
 
-// Shopify returns a zero-amount compare-at for undiscounted products; only a real markdown counts.
 export function isMarkedDown(
   amount: string,
   compareAtAmount: string | undefined,
@@ -175,7 +169,6 @@ function findColorOption(options: ProductOption[]): ProductOption | undefined {
   return options.find(isColorOption);
 }
 
-// Only color partitions the gallery; other option axes share imagery.
 export function hasColorImagePartitioning(options: ProductOption[]): boolean {
   const color = findColorOption(options);
   if (!color || color.values.length <= 1) return false;
