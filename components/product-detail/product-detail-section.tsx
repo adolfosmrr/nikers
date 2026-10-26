@@ -77,7 +77,7 @@ export function ProductDetailSection({
         wallpaperUrl={product.wallpaper?.url}
       >
         {/* Derecha: título, precio, opciones, botón de compra y descripción */}
-        <Reveal className="flex max-h-full w-1/2 flex-col justify-center overflow-y-auto py-10 pr-10">
+        <Reveal className="flex max-h-full w-1/2 flex-col justify-center overflow-y-auto pb-10 pr-10">
           <ProductInfoArea product={product} variantPromise={variantPromise} />
         </Reveal>
       </ProductStage>
